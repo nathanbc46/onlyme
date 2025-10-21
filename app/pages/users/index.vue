@@ -136,7 +136,7 @@ function onFileClick() {
       <UFormField
         name="name"
         label="Name"
-        description="Will appear on receipts, invoices, and other communication."
+        description="Displayed on your profile page."
         required
         class="flex max-sm:flex-col justify-between items-start gap-4"
       >

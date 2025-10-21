@@ -1,5 +1,15 @@
-import type { User } from 'better-auth'
+//import type { User } from 'better-auth'
 
+interface User {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    email: string;
+    emailVerified: boolean;
+    name: string;
+    image?: string | null | undefined;
+    role?: string | null | undefined;
+}
 export function useUser() {
     const user = useState<User | null>('user', () => null)
 

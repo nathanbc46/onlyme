@@ -7,7 +7,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   });
 
   // console.log(session);
-  
+
   // ถ้าไม่เจอ session
   if (!session.data || session.error) {
     if (to.path !== "/login" && to.path !== "/sign-up") {
@@ -19,4 +19,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (session.data && (to.path === "/login" || to.path === "/Login")) {
     return navigateTo("/");
   }
+
+  // ถ้า path ไม่ขึ้นต้นด้วย /settings/ ให้ข้าม
+  if (!to.path.startsWith('/settings')) return
+
+  // ถ้าไม่เป็น admin ให้ไปที่ unauthorized
+  if (!session || session.data?.user.role !== 'admin') {
+    return navigateTo('/unauthorized')
+  }
+
 });

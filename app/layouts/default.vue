@@ -1,23 +1,34 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+const { user } = useUser()
+
 const open = ref(true)
 
-const links = [
-    [
+const links = computed(() => {
+    const currentRole = user.value?.role 
+
+    // --- แก้ไขตรงนี้ ---
+    // ระบุ Type ให้กับตัวแปรอาร์เรย์
+    const menuItems: NavigationMenuItem[] = [
         { label: 'Home', icon: 'i-lucide-home', to: '/' },
         //{ label: 'Users', icon: 'i-lucide-users', to: '/users' },
-        {
+    ]
+
+    if (currentRole === 'admin') {
+        // เมื่อ push ตอนนี้ TypeScript จะตรวจสอบทันทีว่าตรง Type หรือไม่
+        menuItems.push({
             label: 'Settings',
             icon: 'i-lucide-settings',
-            //to: '/settings',
             defaultOpen: true,
-            type: 'trigger',
+            type: 'trigger', // ไม่ต้องใช้ as const แล้ว เพราะ Type ถูกคุมจาก menuItems
             children: [
                 { label: 'Users', to: '/settings/users/', icon: 'i-lucide-users', onselect: () => { open.value = false } }
             ]
-        },
-    ],
-] satisfies NavigationMenuItem[][]
+        })
+    }
+
+    return [menuItems] satisfies NavigationMenuItem[][]
+})
 
 </script>
 <template>
