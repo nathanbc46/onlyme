@@ -115,7 +115,7 @@ function onFileClick() {
             class="space-y-4" 
             @submit="onSubmit">
                 <UFormField label="Name" placeholder="John Doe" name="name">
-                    <UInput v-model="state.name" class="w-full" />
+                    <UInput v-model="state.name" autofocus class="w-full" />
                 </UFormField>
                 <UFormField label="Email" placeholder="john.doe@example.com" name="email">
                     <UInput v-model="state.email" class="w-full" />

@@ -40,11 +40,11 @@ export default defineEventHandler(async (event) => {
             throw new Error('Invalid image file')
         }
 
-        const output = `./public/uploads/avatar/${Date.now()}-${file.filename}.png`
-        const urlOutput = `/uploads/avatar/${Date.now()}-${file.filename}.png`
+        const output = `./public/uploads/product/${Date.now()}-${file.filename}.png`
+        const urlOutput = `/uploads/product/${Date.now()}-${file.filename}.png`
 
         const writeStream = createWriteStream(output)
-        const resizedStream = sharp().resize(200, 200).toFormat('png')
+        const resizedStream = sharp().resize(200).toFormat('png')
         const ReadStream = Readable.from(file.data)
 
         await pipeline(ReadStream, resizedStream, writeStream)

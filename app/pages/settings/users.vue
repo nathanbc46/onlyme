@@ -24,10 +24,15 @@ interface UserCreate {
 
 const data = ref<User[]>([]) // ✅ เริ่มต้นเป็น array เปล่า
 const q = ref<string>()
+const loading = ref(false)
+const error = ref<Error | null>(null)
+
 
 async function listUsers() {
   try {
     start({ force: true }) // เริ่มโหลดทุกครั้งที่เปลี่ยน route
+    loading.value = true
+    error.value = null
     const users = await authClient.admin.listUsers({
       query: {
         searchValue: q.value,
@@ -50,14 +55,17 @@ async function listUsers() {
       data.value = [] // fallback
     }
 
-  } catch (error) {
+  } catch (err) {
     console.error(error)
     toast.add({
       title: 'Error',
-      description: (error as Error).message || 'Failed to fetch users',
+      description: (err as Error).message || 'Failed to fetch users',
       color: 'error'
     })
     data.value = [] // ✅ fallback กรณี error
+    error.value = err as Error
+  } finally {
+    loading.value = false
   }
 
   finish()
@@ -128,10 +136,21 @@ watch(q, debounce(listUsers, 500)) // ดูว่า userId มีการเ�
     variant="subtle"
       :ui="{ container: 'p-0 sm:p-0 gap-y-0', wrapper: 'items-stretch', header: 'p-4 mb-0 border-b border-default' }">
       <template #header>
-        <UInput v-model="q" icon="i-lucide-search" placeholder="Search users" autofocus class="w-full" />
+        <UInput v-model="q" icon="i-lucide-search" placeholder="Search users" autofocus class="w-full" :ui="{ trailing: 'pe-1' }" >
+            <template v-if="q?.length" #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              icon="i-lucide-circle-x"
+              aria-label="Clear input"
+              @click="q = ''"
+            />
+          </template>
+        </UInput>
       </template>
-
-      <SettingsUsersList :users="data || []" @update-user="onUpdateUser" @remove-user="onRemoveUser" />
+      <div v-if="error" class="p-4 text-error">Error: {{ error?.message }}</div>
+      <SettingsUsersList :users="data || []" :loading-data=loading  @update-user="onUpdateUser" @remove-user="onRemoveUser"/>
     </UPageCard>
   </div>
 </template>

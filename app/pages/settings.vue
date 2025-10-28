@@ -2,16 +2,19 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const links = [[{
+  label: 'Products',
+  icon: 'i-lucide-package',
+  to: '/settings/products/',
+}, {
+  label: 'Product Categories',
+  icon: 'i-lucide-boxes',
+  to: '/settings/product-categories/',
+}, {
   label: 'Users',
   icon: 'i-lucide-users',
   to: '/settings/users/',
   exact: true
 }
-/* , {
-  label: 'Change password',
-  icon: 'i-lucide-shield',
-  to: '/users/change-password'
-} */
 ]
 // ,[{
 //   label: 'Documentation',
@@ -38,7 +41,7 @@ const links = [[{
     </template>
 
     <template #body>
-      <div class="flex flex-col gap-4 sm:gap-6 lg:gap-12 w-full lg:max-w-2xl mx-auto">
+      <div class="flex flex-col gap-4 sm:gap-6 lg:gap-12 w-full lg:max-w-3xl mx-auto">
         <NuxtPage />
       </div>
     </template>

@@ -30,6 +30,9 @@ model User {
   banReason  String?
   banExpires DateTime?
 
+  productCategories ProductCategory[]
+  products Product[]
+
   @@unique([email])
   @@map("user")
 }
@@ -79,4 +82,33 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+model ProductCategory {
+  id   String @id @default(uuid())
+  name String
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction)
+  userId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products Product[]
+
+  @@unique([name])
+  @@map("product_category")
+}
+
+model Product {
+  id   String @id @default(uuid())
+  name String
+  price Decimal
+  image String?
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction)
+  userId String
+  category ProductCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  categoryId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name])
+  @@map("product")
 }

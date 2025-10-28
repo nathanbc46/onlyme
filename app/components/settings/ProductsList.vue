@@ -1,0 +1,472 @@
+<script lang="ts" setup>
+import { h, resolveComponent } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
+import type { Row, Column } from '@tanstack/vue-table'
+import { upperFirst } from 'scule'
+
+const UButton = resolveComponent('UButton')
+const UBadge = resolveComponent('UBadge')
+const UDropdownMenu = resolveComponent('UDropdownMenu')
+// const { copy } = useClipboard()
+
+const { deleteProduct, updateProduct } = useProduct()
+const toast = useToast()
+const table = useTemplateRef('table')
+
+const columnVisibility = ref({
+  id: false // ซ่อนคอลัมน์ id
+})
+
+interface Products {
+  id: string
+  name: string
+  price: number
+  category: {
+    id: string
+    name: string
+  }
+  image?: string
+}
+
+interface ProductForm {
+  name: string
+  price: number
+  categoryId: string
+  image?: string
+}
+
+const props = withDefaults(defineProps<{
+  products?: Products[]
+  loadingData?: boolean,
+  categories?: { id: string; name: string }[]
+}>(), {
+  products: () => [],
+  loadingData: true,
+  categories: () => []
+})
+
+const emit = defineEmits(['update', 'delete'])
+
+const isEditModalOpen = ref(false)
+const isDeleteModalOpen = ref(false)
+const selectedProduct = ref<Products | null>(null)
+
+const openEditModal = (product: Products) => {
+  selectedProduct.value = product
+  isEditModalOpen.value = true
+}
+
+const closeEditModal = () => {
+  isEditModalOpen.value = false
+  selectedProduct.value = null
+}
+
+const openDeleteModal = (product: Products) => {
+  selectedProduct.value = product
+  isDeleteModalOpen.value = true
+}
+
+const closeDeleteModal = () => {
+  isDeleteModalOpen.value = false
+  selectedProduct.value = null
+}
+
+async function onDeleteProduct(id: string) {
+  if (!id) return
+  try {
+    const data = await deleteProduct(id)
+    toast.add({
+      title: 'Success',
+      description: 'Product ' + data?.name + ' deleted successfully',
+      color: 'success'
+    })
+    emit('delete', id)
+    closeDeleteModal()
+  } catch (error) {
+    console.error(error)
+    toast.add({
+      title: 'Error',
+      description: (error as Error).message || 'Failed to delete product',
+      color: 'error'
+    })
+  }
+}
+
+const updatedRowId = ref<string | null>(null)
+async function onUpdateProduct(oldImage: string | null | undefined, id: string | undefined, formData: ProductForm, imageFile?: File) {
+  //console.log('onUpdateProduct', id, formData, imageFile, oldImage)
+
+  if (!id) return
+
+  let imageUrl: string | undefined
+
+  if (imageFile) {
+    try {
+      if (!imageFile.type.startsWith("image/")) {
+        throw new Error("Please upload a valid image file(jpg, jpeg, png)")
+      }
+      // 👉 อัพโหลดไฟล์ไปที่ API
+      const formData = new FormData()
+      formData.append("file", imageFile)
+      formData.append("oldImage", oldImage || '' )
+
+      const uploadRes = await $fetch<{ url: string }>("/api/products/upload-image", {
+        method: "POST",
+        body: formData,
+      })
+
+      //console.log(uploadRes)
+
+      imageUrl = uploadRes.url // ได้ path เช่น /uploads/xxxx.png
+      //console.log(imageUrl)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  try {
+    const res = await updateProduct(id, { ...formData, image: imageUrl })
+    toast.add({
+      title: 'Success',
+      description: 'Product ' + res?.name + ' updated successfully',
+      color: 'success'
+    })
+    emit('update', res)
+
+    // ไฮไลต์แถว
+    updatedRowId.value = id
+    setTimeout(() => {
+      updatedRowId.value = null // ยกเลิก highlight หลัง 2 วินาที
+    }, 2000)
+
+    closeEditModal()
+  } catch (error) {
+    console.error(error)
+    toast.add({
+      title: 'Error',
+      description: (error as Error).message || 'Failed to update product',
+      color: 'error'
+    })
+  }
+}
+
+//const categories  = await $fetch<{ id: string; name: string }[]>('/api/product-categories?k=')
+
+//table data
+type ProductsTable = {
+  id: string
+  name: string
+  price: number
+  category: string
+  image?: string
+}
+
+// console.log('products', props.products)
+// ✅ ใช้ toRef เพื่อให้ reactive กับ props.products
+const productsRef = toRef(props, 'products') 
+
+const productsTable = computed<ProductsTable[]>(() => {
+  return productsRef.value.map(product => ({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    category: product.category.name,
+    image: product?.image
+  }))
+})
+
+function getCellClass(row: Row<ProductsTable>) {
+  return row.getValue('id') === updatedRowId.value
+    ? 'bg-yellow-100 dark:bg-yellow-600 transition-colors'
+    : ''
+}
+
+const columns: TableColumn<ProductsTable>[] = [
+  {
+    accessorKey: 'id',
+    header: '#',
+    meta: {
+      class: {
+        th: 'text-center font-semibold',
+        td: 'text-center font-mono'
+      }
+    },
+   cell: ({ row }) => h('div', { class: ['text-center', getCellClass(row)] }, `#${row.getValue('id')}`)
+  },
+  {
+    accessorKey: 'image',
+    header: 'Image',
+    cell: ({ row }) => h('div', { class: [getCellClass(row)] }, row.getValue('image') ? h('img', { src: row.getValue('image'), alt: 'Product Image', class: 'w-10 h-10 object-cover rounded' }) : 'No Image'),
+    meta: {
+      class: { td: 'text-center' }
+    }
+  },
+  {
+    accessorKey: 'name',
+    header: ({ column }) => getHeader(column, 'Product Name'),
+     cell: ({ row }) => h('div', { class: ['font-medium text-highlighted', getCellClass(row)] }, row.getValue('name')),
+  },
+  {
+    accessorKey: 'category',
+    header: ({ column }) => getHeader(column, 'Category'),
+    cell: ({ row }) => {
+      const color = 'success'
+      return h(UBadge, { class: ['capitalize', getCellClass(row)], variant: 'subtle', color }, () => row.getValue('category'))
+    }
+  },
+  {
+    accessorKey: 'price',
+    header: ({ column }) => getHeader(column, 'Price'),
+    cell: ({ row }) => {
+      const price = Number.parseFloat(row.getValue('price'))
+      const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(price)
+      return h('div', { class: ['text-right font-medium', getCellClass(row)] }, formatted)
+    }
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      return h('div', { class: 'text-right' },
+        h(
+          UDropdownMenu,
+          {
+            content: {
+              align: 'end'
+            },
+            items: getRowItems(row),
+            'aria-label': 'Actions dropdown'
+          },
+          () =>
+            h(UButton, {
+              icon: 'i-lucide-ellipsis-vertical',
+              color: 'neutral',
+              variant: 'ghost',
+              class: 'ml-auto',
+              'aria-label': 'Actions dropdown'
+            })
+        ),
+      )
+    }
+  }
+]
+
+function getRowItems(row: Row<ProductsTable>) {
+  return [
+    {
+      type: 'label',
+      label: 'Actions'
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Edit product',
+      icon: 'i-lucide-edit-2',
+      onSelect() {
+        openEditModal(props.products.find(p => p.id === row.getValue('id'))!)
+      }
+    },
+    {
+      label: 'Delete product',
+      icon: 'i-lucide-trash',
+      color: 'error',
+      onSelect() {
+        openDeleteModal(props.products.find(p => p.id === row.getValue('id'))!)
+      }
+    }
+  ]
+}
+
+function getHeader(column: Column<ProductsTable>, label: string) {
+  const isSorted = column.getIsSorted()
+
+  return h(
+    UDropdownMenu,
+    {
+      content: {
+        align: 'start'
+      },
+      'aria-label': 'Actions dropdown',
+      items: [
+        {
+          label: 'Asc',
+          type: 'checkbox',
+          icon: 'i-lucide-arrow-up-narrow-wide',
+          checked: isSorted === 'asc',
+          onSelect: () => {
+            if (isSorted === 'asc') {
+              column.clearSorting()
+            } else {
+              column.toggleSorting(false)
+            }
+          }
+        },
+        {
+          label: 'Desc',
+          icon: 'i-lucide-arrow-down-wide-narrow',
+          type: 'checkbox',
+          checked: isSorted === 'desc',
+          onSelect: () => {
+            if (isSorted === 'desc') {
+              column.clearSorting()
+            } else {
+              column.toggleSorting(true)
+            }
+          }
+        }
+      ]
+    },
+    () =>
+      h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label,
+        icon: isSorted
+          ? isSorted === 'asc'
+            ? 'i-lucide-arrow-up-narrow-wide'
+            : 'i-lucide-arrow-down-wide-narrow'
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5 data-[state=open]:bg-elevated',
+        'aria-label': `Sort by ${isSorted === 'asc' ? 'descending' : 'ascending'}`
+      })
+  )
+}
+
+const categoryFilter = ref('all')
+
+// watch(() => categoryFilter.value, (newVal) => {
+//   if (!table?.value?.tableApi) return
+
+//   const statusColumn = table.value.tableApi.getColumn('category')
+//   if (!statusColumn) return
+
+//   if (newVal === 'all') {
+//     statusColumn.setFilterValue(undefined)
+//   } else {
+//     statusColumn.setFilterValue(newVal)
+//   }
+// })
+
+// ✅ filter data ตาม category (แยกจาก UTable)
+const filteredProducts = computed(() => {
+  if (categoryFilter.value === 'all') return productsTable.value
+  return productsTable.value.filter(p => p.category === categoryFilter.value)
+})
+
+const formattedCategories = computed(() =>
+  (props.categories || []).map(c => ({
+    label: c.name,
+    value: c.name
+  }))
+)
+
+// เพื่อรีเฟรชตารางเมื่อ data เปลี่ยนแปลง
+// const tableKey = ref(0)
+// watch(() => props.products, () => {
+//   tableKey.value++
+// }, { deep: true })
+
+// ✅ ถ้าต้องการ force rerender table แบบไม่ reset filter
+// ให้เก็บ key ไว้ต่างหาก
+const tableKey = ref(0)
+watch(productsRef, () => {
+  // เปลี่ยน key ทุกครั้งที่ products เปลี่ยน reference
+  tableKey.value++
+})
+
+const globalFilter = ref('')
+</script>
+
+<template>
+  <div>
+    <div class="flex flex-col flex-1 w-full">
+      <div class="flex px-4 py-3.5 border-b border-accented gap-3 items-center">
+        <!-- <UInput v-model="globalFilter" class="max-w-sm" placeholder="Filter..." /> -->
+         <UInput v-model="globalFilter" icon="i-lucide-search" placeholder="Search Products / Categories" autofocus class="w-full"  :ui="{ trailing: 'pe-1' }" >
+            <template v-if="globalFilter?.length" #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              icon="i-lucide-circle-x"
+              aria-label="Clear input"
+              @click="globalFilter = ''"
+            />
+          </template>
+        </UInput>
+
+        <USelect
+            v-model="categoryFilter"
+            :items="[
+                  { label: 'All', value: 'all' },
+                  ...formattedCategories
+            ]"
+            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+            placeholder="Filter status"
+            class="min-w-28"
+          />
+
+            <UDropdownMenu
+            :items="
+              table?.tableApi
+                ?.getAllColumns()
+                .filter((column: any) => column.getCanHide())
+                .map((column: any) => ({
+                  label: upperFirst(column.id),
+                  type: 'checkbox' as const,
+                  checked: column.getIsVisible(),
+                  onUpdateChecked(checked: boolean) {
+                    table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
+                  },
+                  onSelect(e?: Event) {
+                    e?.preventDefault()
+                  }
+                }))
+            "
+            :content="{ align: 'end' }"
+          >
+            <UButton
+              label="Display"
+              color="neutral"
+              variant="outline"
+              trailing-icon="i-lucide-settings-2"
+            />
+          </UDropdownMenu>
+      </div>
+
+      <!-- <ul>
+        <li v-for="product in productsTable" :key="product.id" class="p-4 border-b border-accented flex items-center justify-between"> {{ product.name }} - {{ product.category }} - {{ product.price }}
+          </li>
+      </ul> -->
+
+      <UTable 
+      ref="table"
+      v-model:column-visibility="columnVisibility"
+      sticky 
+      :columns="columns" 
+      :global-filter="globalFilter" 
+      :loading="loadingData" loading-color="primary"
+       loading-animation="carousel" 
+      :data="filteredProducts" 
+      :rows = filteredProducts
+      class="flex-1" >
+      <template #loading>
+        <UIcon name="i-lucide-loader" spin /> Loading products...
+      </template>
+    </UTable>
+    </div>
+
+
+    <!-- 🧩 ใช้ modal เดียว -->
+    <SettingsProductModal 
+    v-model:open="isEditModalOpen" mode="edit" title="Edit product"
+      :description="'Edit product details'+ (selectedProduct?.name ? ': ' + selectedProduct?.name : '')" :product="selectedProduct" :categories="categories"
+      @submit="(data, imageFile) => onUpdateProduct(selectedProduct?.image, selectedProduct?.id, data, imageFile)" 
+      />
+    <!-- @submit="selectedProduct && onUpdateProduct(selectedProduct.id, $event)"  -->
+    <SettingsConfirmModal 
+    v-model:open="isDeleteModalOpen" mode="delete" title="Delete product"
+      :description="'Are you sure you want to delete this product \'' + selectedProduct?.name + '\' ?'"
+      @confirm="selectedProduct && onDeleteProduct(selectedProduct.id)" />
+  </div>
+</template>
