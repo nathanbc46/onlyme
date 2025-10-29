@@ -14,6 +14,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OrderStatus {
+  OPEN
+  PENDING
+  CLOSED
+  CANCELLED
+}
+
 model User {
   id            String    @id
   name          String
@@ -31,7 +38,9 @@ model User {
   banExpires DateTime?
 
   productCategories ProductCategory[]
-  products Product[]
+  products          Product[]
+  customers         Customer[]
+  orders            Order[]
 
   @@unique([email])
   @@map("user")
@@ -85,30 +94,80 @@ model Verification {
 }
 
 model ProductCategory {
-  id   String @id @default(uuid())
-  name String
-  user User @relation(fields: [userId], references: [id], onDelete: NoAction)
-  userId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  products Product[]
+  id        String    @id @default(uuid())
+  name      String
+  user      User      @relation(fields: [userId], references: [id], onDelete: NoAction)
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
 
   @@unique([name])
   @@map("product_category")
 }
 
 model Product {
-  id   String @id @default(uuid())
-  name String
-  price Decimal
-  image String?
-  user User @relation(fields: [userId], references: [id], onDelete: NoAction)
-  userId String
-  category ProductCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  id         String          @id @default(uuid())
+  name       String
+  price      Decimal
+  image      String?
+  user       User            @relation(fields: [userId], references: [id], onDelete: NoAction)
+  userId     String
+  category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
   categoryId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  orderItems OrderItem[]
 
   @@unique([name])
   @@map("product")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  email     String?  @unique
+  line      String?  @unique
+  phone     String?  @unique
+  address   String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: NoAction)
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+
+  @@unique([name, email, line, phone])
+  @@map("customer")
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: NoAction)
+  customerId  String
+  user        User        @relation(fields: [userId], references: [id], onDelete: NoAction)
+  userId      String
+  totalAmount Decimal
+  status      OrderStatus @default(CLOSED)
+  remark      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+
+  @@map("order")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id], onDelete: NoAction)
+  productId String
+  quantity  Int
+  price     Decimal
+  remark    String?
+
+  @@map("order_item")
 }

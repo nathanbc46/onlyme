@@ -365,15 +365,6 @@ const formattedCategories = computed(() =>
 // watch(() => props.products, () => {
 //   tableKey.value++
 // }, { deep: true })
-
-// ✅ ถ้าต้องการ force rerender table แบบไม่ reset filter
-// ให้เก็บ key ไว้ต่างหาก
-const tableKey = ref(0)
-watch(productsRef, () => {
-  // เปลี่ยน key ทุกครั้งที่ products เปลี่ยน reference
-  tableKey.value++
-})
-
 const globalFilter = ref('')
 </script>
 
@@ -454,6 +445,9 @@ const globalFilter = ref('')
         <UIcon name="i-lucide-loader" spin /> Loading products...
       </template>
     </UTable>
+      <div class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+       {{ filteredProducts.length }} row(s)
+    </div>
     </div>
 
 

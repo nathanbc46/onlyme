@@ -58,7 +58,7 @@ watch(q, debounce(getProductList, 300))
 async function onCreateProduct(formData: Product, imageFile?: File) {
   if (!formData) return
 
-  console.log('onCreateProduct', formData, imageFile)
+  //console.log('onCreateProduct', formData, imageFile)
   let imageUrl: string | undefined
 
   if (imageFile) {
@@ -76,7 +76,7 @@ async function onCreateProduct(formData: Product, imageFile?: File) {
         body: formData,
       })
 
-      console.log('uploadurl', uploadRes)
+      //console.log('uploadurl', uploadRes)
 
       imageUrl = uploadRes.url // ได้ path เช่น /uploads/xxxx.png
       //console.log(imageUrl)
