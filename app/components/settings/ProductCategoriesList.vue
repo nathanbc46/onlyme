@@ -16,6 +16,8 @@ const emit = defineEmits(['update', 'delete'])
 
 const isDeleteModalOpen = ref(false)
 const selectedProduct = ref<ProductCategory | null>(null)
+const loadingUpdate = ref(false)
+const loadingDelete = ref(false)
 
 const openDeleteModal = (product: ProductCategory) => {
   selectedProduct.value = product
@@ -35,6 +37,7 @@ async function onUpdateProductCategory(id: string, formData: ProductCategory) {
     if (!formData.name) return
 
     try {
+        loadingUpdate.value = true
         const data = await updateProductCategory(id, formData)
 
         toast.add({
@@ -52,12 +55,15 @@ async function onUpdateProductCategory(id: string, formData: ProductCategory) {
         description: (error as Error).message || 'Failed to create product category',
         color: 'error'
         })
+    } finally {
+        loadingUpdate.value = false
     }
    
 }
 
 async function onDeleteProductCategory(id: string) {
     try {
+        loadingDelete.value = true
         const data = await deleteProductCategory(id)
         toast.add({
         title: 'Success',
@@ -74,6 +80,8 @@ async function onDeleteProductCategory(id: string) {
         description: (error as Error).message || 'Failed to delete product category',
         color: 'error'
         })
+    } finally {
+        loadingDelete.value = false
     }
 }
 
@@ -93,6 +101,7 @@ async function onDeleteProductCategory(id: string) {
                     <SettingsProductCategoriesModal 
                     mode="edit" title="Edit product category"
                         :name="productCategory.name" description="Edit a new product category"
+                        :loading-submit="loadingUpdate"
                         @submit="onUpdateProductCategory(productCategory.id, $event)" />
                 </div>
             </li>
@@ -104,6 +113,7 @@ async function onDeleteProductCategory(id: string) {
     <SettingsConfirmModal 
     v-model:open="isDeleteModalOpen" mode="delete" title="Delete product"
       :description="'Are you sure you want to delete this product \'' + selectedProduct?.name + '\' ?'"
+      :loading="loadingDelete"
       @confirm="selectedProduct && onDeleteProductCategory(selectedProduct.id)" />
     </ClientOnly>
 </template>

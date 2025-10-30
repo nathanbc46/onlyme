@@ -26,6 +26,7 @@ interface Products {
 
 const data = ref<Products[]>([]) // ✅ เริ่มต้นเป็น array เปล่า
 const loading = ref(true)
+const loadingCreate = ref(false)
 const error = ref<Error | null>(null)
 
 //const { data: categories } = await useFetch<{ id: string; name: string }[]>('/api/product-categories?k=')
@@ -63,6 +64,7 @@ async function onCreateProduct(formData: Product, imageFile?: File) {
 
   if (imageFile) {
     try {
+      loadingCreate.value = true
       if (!imageFile.type.startsWith("image/")) {
         throw new Error("Please upload a valid image file(jpg, jpeg, png)")
       }
@@ -86,6 +88,7 @@ async function onCreateProduct(formData: Product, imageFile?: File) {
   }
 
   try {
+    loadingCreate.value = true
     const product = await createProduct({ ...formData, image: imageUrl })
     //getProductList()
 
@@ -116,6 +119,8 @@ async function onCreateProduct(formData: Product, imageFile?: File) {
       description: (error as Error).message || 'Failed to create product',
       color: 'error'
     })
+  } finally {
+    loadingCreate.value = false
   }
 }
 
@@ -164,7 +169,7 @@ const categories = await $fetch<{ id: string; name: string }[]>('/api/product-ca
     <!-- 🧩 ใช้ modal เดียว -->
     <SettingsProductModal 
     v-model:open="isEditModalOpen" mode="add" title="Add product" description="Add a new product"
-      :product="selectedProduct" :categories="categories"
+      :product="selectedProduct" :categories="categories" :loading="loadingCreate"
       @submit="(formData, imageFile) => onCreateProduct(formData, imageFile)" />
   </div>
 </template>

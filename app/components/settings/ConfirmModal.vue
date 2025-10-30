@@ -14,6 +14,7 @@ function onClick() {
 const open = ref(false) */
 
 const props = defineProps<{
+    loading?: boolean
     open?: boolean,
     title: string,
     description: string
@@ -46,7 +47,7 @@ function closeModal() {
         <template #body>
             <div class="flex justify-end gap-2">
                 <UButton label="Cancel" color="neutral" variant="subtle" @click="closeModal" />
-                <UButton label="Confirm" class="w-fit" color="error" @click="onClick()" />
+                <UButton label="Confirm" class="w-fit" color="error" :loading="loading" @click="onClick()" />
             </div>
         </template>
     </UModal>

@@ -5,6 +5,7 @@ const fileRef = ref<HTMLInputElement>()
 
 const props = withDefaults(
   defineProps<{
+    loading?: boolean
     open?: boolean
     mode?: 'add' | 'edit'
     title?: string
@@ -26,7 +27,8 @@ const props = withDefaults(
     description: 'Add a new product',
     product: null,
     mode: 'add',
-    categories: () => []
+    categories: () => [],
+    loading: false
   }
 )
 
@@ -76,8 +78,6 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
 function closeModal() {
   emit('update:open', false)
 }
-
-const loading = ref(false)
 
 const formattedCategories = computed(() =>
   (props.categories || []).map(c => ({

@@ -5,6 +5,7 @@ import type { SelectMenuItem } from '@nuxt/ui'
 const { getProducts } = useProduct()
 const { createCustomer } = useCustomer()
 const { createOrder } = useOrder()
+const { start, finish } = useLoadingIndicator()
 
 const toast = useToast()
 
@@ -84,6 +85,7 @@ if (categoriesData.value) {
 
 // ดึงข้อมูลสินค้า
 try {
+  start({ force: true })
   const products = await getProducts()
   if (Array.isArray(products)) {
     data.value = products
@@ -92,6 +94,8 @@ try {
   }
 } catch (err) {
   console.error(err)
+} finally {
+  finish()
 }
 
 // กรองข้อมูลตามการค้นหาและหมวดหมู่
@@ -170,6 +174,7 @@ const totalPrice = computed(() =>
   cart.value.reduce((sum, i) => sum + (i.price || 0) * (i.qty || 0), 0)
 )
 
+const loadingSubmit = ref(false)
 async function submitOrder() {
   if (cart.value.length === 0) {
     toast.add({
@@ -196,6 +201,7 @@ async function submitOrder() {
   }
 
   try {
+    loadingSubmit.value = true
     const res = await createOrder(order)
     console.log(res.orderNumber)
     toast.add({
@@ -224,6 +230,8 @@ async function submitOrder() {
       description: 'เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ: ' + (error as Error).message,
       color: 'error'
     })
+  } finally {
+    loadingSubmit.value = false
   }
 
 }
@@ -436,6 +444,7 @@ function onPrinted(orderId: string) {
               </UButton>
               <UButton 
                 :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-[2]"
+                :loading="loadingSubmit"
                 color="success" block @click="submitOrder">
                 <UIcon name="i-heroicons-check-circle" /> ยืนยันคำสั่งซื้อ
               </UButton>

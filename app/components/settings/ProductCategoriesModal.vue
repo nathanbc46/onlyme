@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 
 const props = withDefaults(defineProps<{
+    loadingSubmit?: boolean,
     mode?: 'add' | 'edit',
     title?: string,
     description?: string,
@@ -11,7 +12,8 @@ const props = withDefaults(defineProps<{
     mode: 'add',
     title: 'Add product category',
     description: 'Add a new product category',
-    name: ''
+    name: '',
+    loadingSubmit: false
 })
 
 const schema = z.object({
@@ -25,17 +27,15 @@ const state: Schema = reactive({
 })
 
 const open = ref(false)
-const loading = ref(false)
 
 const emit = defineEmits(['submit'])
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
     try {
-        loading.value = true
         emit('submit', payload.data)
         open.value = false
-    } finally {
-        loading.value = false
+    } catch (error) {
+        console.error(error)
     }
 }
 </script>
@@ -52,7 +52,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
                 </UFormField>
                 <div class="flex justify-end gap-2">
                     <UButton label="Cancel" color="neutral" variant="subtle" @click="open = false" />
-                    <UButton :label="props.mode === 'add' ? 'Add Category' : 'Update'"  class="w-fit" :loading="loading" type="submit" />
+                    <UButton :label="props.mode === 'add' ? 'Add Category' : 'Update'"  class="w-fit" :loading="loadingSubmit" type="submit" />
                 </div>
             </UForm>
         </template>

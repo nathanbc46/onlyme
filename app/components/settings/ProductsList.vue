@@ -50,6 +50,8 @@ const emit = defineEmits(['update', 'delete'])
 const isEditModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 const selectedProduct = ref<Products | null>(null)
+const loadingUpdate = ref(false)
+const loadingDelete = ref(false)
 
 const openEditModal = (product: Products) => {
   selectedProduct.value = product
@@ -74,6 +76,7 @@ const closeDeleteModal = () => {
 async function onDeleteProduct(id: string) {
   if (!id) return
   try {
+    loadingDelete.value = true
     const data = await deleteProduct(id)
     toast.add({
       title: 'Success',
@@ -89,6 +92,8 @@ async function onDeleteProduct(id: string) {
       description: (error as Error).message || 'Failed to delete product',
       color: 'error'
     })
+  } finally {
+    loadingDelete.value = false
   }
 }
 
@@ -102,6 +107,7 @@ async function onUpdateProduct(oldImage: string | null | undefined, id: string |
 
   if (imageFile) {
     try {
+      loadingUpdate.value = true
       if (!imageFile.type.startsWith("image/")) {
         throw new Error("Please upload a valid image file(jpg, jpeg, png)")
       }
@@ -125,6 +131,7 @@ async function onUpdateProduct(oldImage: string | null | undefined, id: string |
   }
 
   try {
+    loadingUpdate.value = true
     const res = await updateProduct(id, { ...formData, image: imageUrl })
     toast.add({
       title: 'Success',
@@ -147,6 +154,8 @@ async function onUpdateProduct(oldImage: string | null | undefined, id: string |
       description: (error as Error).message || 'Failed to update product',
       color: 'error'
     })
+  } finally {
+    loadingUpdate.value = false
   }
 }
 
@@ -454,13 +463,14 @@ const globalFilter = ref('')
     <!-- 🧩 ใช้ modal เดียว -->
     <SettingsProductModal 
     v-model:open="isEditModalOpen" mode="edit" title="Edit product"
-      :description="'Edit product details'+ (selectedProduct?.name ? ': ' + selectedProduct?.name : '')" :product="selectedProduct" :categories="categories"
+      :description="'Edit product details'+ (selectedProduct?.name ? ': ' + selectedProduct?.name : '')" :product="selectedProduct" :categories="categories" :loading="loadingUpdate"
       @submit="(data, imageFile) => onUpdateProduct(selectedProduct?.image, selectedProduct?.id, data, imageFile)" 
       />
     <!-- @submit="selectedProduct && onUpdateProduct(selectedProduct.id, $event)"  -->
     <SettingsConfirmModal 
     v-model:open="isDeleteModalOpen" mode="delete" title="Delete product"
       :description="'Are you sure you want to delete this product \'' + selectedProduct?.name + '\' ?'"
+      :loading="loadingDelete"
       @confirm="selectedProduct && onDeleteProduct(selectedProduct.id)" />
   </div>
 </template>

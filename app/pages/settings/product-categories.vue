@@ -15,6 +15,7 @@ interface ProductCategories {
 const data = ref<ProductCategories[]>([])
 const loading = ref(true)
 const error = ref<Error | null>(null)
+const loadingCreate = ref(false)
 
 const { createProductCategory, getProductCategories } = useProductCategories()
 
@@ -22,6 +23,7 @@ async function onCreateProductCategory(formData: ProductCategory) {
   if (!formData.name) return
 
   try {
+    loadingCreate.value = true
     const productCategory = await createProductCategory(formData)
 
     toast.add({
@@ -43,6 +45,8 @@ async function onCreateProductCategory(formData: ProductCategory) {
       description: (error as Error).message || 'Failed to create product category',
       color: 'error'
     })
+  } finally {
+    loadingCreate.value = false
   }
 
 }
@@ -94,7 +98,7 @@ watch(q, debounce(getCategoriesList, 500)) // ดูว่า q มีการ�
       orientation="horizontal" class="mb-4">
 
       <SettingsProductCategoriesModal 
-      mode="add" title="Add product category" description="Add a new product category"
+      mode="add" title="Add product category" description="Add a new product category" :loading-submit="loadingCreate"
         @submit="onCreateProductCategory" />
     </UPageCard>
 
