@@ -55,13 +55,13 @@ onMounted(() => {
       <div v-for="order in orders" :key="order.id" class="mb-4 p-4 border rounded">
         <h2 class="text-lg font-medium">Order #: {{ order.orderNumber }}</h2>
         <p>customer: {{ order.customer.name }}</p>
-        <p>Order Items:
+        <div>Order Items:
           <ul class="list-disc pl-4 ml-4">
             <li v-for="item in order.orderItems" :key="item.id">
               {{ item.product.name }} ({{ item.price }} x {{ item.quantity }}) = ฿{{ Number(item.price) * Number(item.quantity) }}
             </li>
           </ul>
-        </p>
+        </div>
         <p>Total Amount: {{ order.totalAmount }}</p>
         <p>Status: {{ order.status }}</p>
       </div>
