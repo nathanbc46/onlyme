@@ -96,12 +96,13 @@ const onEdit = () => emit('edit', props.order)
 
       <template #body>
 
-        <div class="flex items-center justify-between">
+        <div class="flex items-end justify-between w-full">
           <!-- <div>
             <h3 class="text-lg font-semibold">สรุปคำสั่งซื้อ — #{{ order.orderNumber }}</h3>
             <p class="text-sm text-gray-500">ลูกค้า: {{ order.customer?.name || '-' }} • {{ formattedDate }}</p>
           </div> -->
-          <div class="flex gap-2">
+          <div></div>
+          <div class="flex gap-2 items-end">
             <UButton size="sm" variant="outline" icon="i-lucide-copy" @click="copyReceipt">คัดลอก</UButton>
             <UButton size="sm" variant="outline" icon="i-heroicons-printer" @click="printReceipt">ปริ้น</UButton>
             <UButton size="sm" color="primary" icon="i-heroicons-pencil-square" @click="onEdit">แก้ไข</UButton>

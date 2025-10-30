@@ -333,7 +333,7 @@ function onPrinted(orderId: string) {
               v-for="item in filteredData" :key="item.id"
                 class="flex flex-col bg-gray-50 dark:bg-gray-800 cursor-pointer hover:shadow-lg  h-auto gap-3"
                 @click="addToCart({ ...item, qty: 1 })">
-                <img :src="item.image" class="rounded-lg aspect-square object-cover" />
+                <img v-if="item.image" :src="item.image" class="rounded-lg aspect-square object-cover" />
                 <div class="mt-2 font-semibold truncate text-sm sm:text-base">{{ item.name }}</div>
                 <div class="flex-1 text-xs sm:text-sm">{{ item.category.name }}</div>
                 <div class="text-gray-500 text-sm sm:text-base">฿{{ item.price ?? 0 }}</div>
