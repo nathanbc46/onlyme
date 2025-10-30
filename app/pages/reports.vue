@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 const { getOrders } = useOrder()
+const { start, finish } = useLoadingIndicator()
 
 interface Order {
   id: string
@@ -25,10 +26,13 @@ const orders = ref<Order[]>([])
 
 async function fetchOrders() {
   try {
+    start({ force: true })
     orders.value = await getOrders()
     console.log(orders.value)
   } catch (error) {
     console.error('Error fetching orders:', error)
+  } finally {
+    finish()
   }
 }
 
