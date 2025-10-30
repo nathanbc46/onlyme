@@ -26,7 +26,20 @@ export function useOrder() {
         }
     }
 
+    async function getOrders() {
+        try {
+            const orders = await $fetch('/api/orders', {
+                method: 'GET',
+            })
+            return orders
+        } catch (error) {
+            console.error('Error getting orders:', error);
+            throw error;
+        }
+    }
+
     return {
-        createOrder
+        createOrder,
+        getOrders
     }
 }

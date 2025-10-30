@@ -47,10 +47,11 @@ export default defineEventHandler(async (event) => {
                     price: item.price,
                     remark: item.note
                 }))
-            }
+            },
         },
         include: {
-            orderItems: true, // คืนข้อมูล orderItems ด้วย
+            customer: true,
+            orderItems : { include: { product: true } }
         }
     });
 

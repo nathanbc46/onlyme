@@ -127,7 +127,7 @@ function highlight(uid: number) {
   setTimeout(() => (highlightItem.value = null), 500)
 }
 
-function addToCart(item: any) {
+function addToCart(item: CartItem) {
   const existing = cart.value.find(i => i.id === item.id)
   if (existing) {
     existing.qty++
@@ -144,20 +144,24 @@ function addToCart(item: any) {
 }
 
 function removeFromCart(index: number) {
-  const uid = cart.value[index]._uid
+  const uid = cart?.value[index]?._uid
   cart.value.splice(index, 1)
   if (uid) highlight(uid)
 }
 
 function increaseQty(index: number) {
-  cart.value[index].qty++
-  highlight(cart.value[index]._uid!)
+  if (cart.value[index]) {
+    cart.value[index].qty++
+    highlight(cart.value[index]._uid!)
+  }
 }
 
 function decreaseQty(index: number) {
-  if (cart.value[index].qty > 1) {
-    cart.value[index].qty--
-    highlight(cart.value[index]._uid!)
+  if (cart.value[index]) {
+    if (cart.value[index].qty > 1) {
+      cart.value[index].qty--
+      highlight(cart.value[index]._uid!)
+    }
   }
 }
 
@@ -167,7 +171,7 @@ const totalPrice = computed(() =>
 )
 
 async function submitOrder() {
-  if(cart.value.length === 0 ) {
+  if (cart.value.length === 0) {
     toast.add({
       title: 'Error',
       description: 'กรุณาเลือกสินค้าอย่างน้อย 1 รายการในตะกร้า',
@@ -175,7 +179,7 @@ async function submitOrder() {
     })
     return
   }
-  if(!selectedCustomerId.value) {
+  if (!selectedCustomerId.value) {
     toast.add({
       title: 'Error',
       description: 'กรุณาเลือกลูกค้า',
@@ -191,21 +195,29 @@ async function submitOrder() {
     total: totalPrice.value
   }
 
-
   try {
     const res = await createOrder(order)
-
-    console.log(res)
+    console.log(res.orderNumber)
     toast.add({
       title: 'Success',
-      description: 'สั่งอาหารเรียบร้อยแล้ว!'+res,
+      description: 'สั่งอาหารเรียบร้อยแล้ว! เลขที่คําสั่งซื้อ: ' + res.orderNumber + ' ยอดรวม: ' + (totalPrice.value ? ' ฿' + totalPrice.value.toFixed(2) : ''),
       icon: 'i-heroicons-check-circle',
       color: 'success'
     })
 
-    cart.value = []
-    orderNote.value = ''
-    selectedCustomerId.value = ''
+    if (!res || !res.id) {
+      throw new Error('Invalid order response from server')
+    }
+
+    if (res && res.id) {
+      cart.value = []
+      orderNote.value = ''
+      selectedCustomerId.value = ''
+
+      currentOrder.value = res
+      showReceipt.value = true
+    }
+
   } catch (error) {
     toast.add({
       title: 'Error',
@@ -219,26 +231,49 @@ async function submitOrder() {
 
 
 // --- ใบเสร็จ ---
-const showReceipt = ref(false)
-const currentOrder = ref(null)
-
-async function confirmOrder() {
-  // 1) create order on server
-  const res = await $fetch('/api/orders', { method: 'POST', body: { /* order payload */ } })
-  currentOrder.value = res
-  // 2) open modal
-  showReceipt.value = true
+interface Order {
+  id: string
+  orderNumber: string
+  totalAmount: number | string
+  status: string
+  customer: {
+    id: string
+    name: string
+  }
+  orderItems: {
+    id: string
+    quantity: number | string
+    price: number | string
+    product: {
+      id: string
+      name: string
+    }
+  }[]
 }
+const showReceipt = ref(false)
+const currentOrder = ref<Order>()
 
-function handleEdit(order) {
+// async function confirmOrder() {
+//   // 1) create order on server
+//   const res = await $fetch('/api/orders', { method: 'POST', body: { /* order payload */ } })
+//   currentOrder.value = res
+//   // 2) open modal
+//   showReceipt.value = true
+// }
+
+function handleEdit(order: Order) {
+  console.log('handleEdit',order)
+  return
   // Option A: navigate to edit page
-  navigateTo(`/orders/${order.id}/edit`)
+  // navigateTo(`/orders/${order.id}/edit`)
   // Option B: open inline edit modal in same page
 }
 
-function onPrinted(orderId) {
+function onPrinted(orderId: string) {
+  console.log('onPrinted', orderId)
+  return 
   // optional: mark printed status on server
-  $fetch(`/api/orders/${orderId}/printed`, { method: 'POST' }).catch(() => { })
+  // $fetch(`/api/orders/${orderId}/printed`, { method: 'POST' }).catch(() => { })
 }
 
 </script>
@@ -262,17 +297,20 @@ function onPrinted(orderId) {
         <div class="flex flex-col p-4 h-full overflow-hidden">
           <!-- Search & Filter -->
           <div class="flex flex-col sm:flex-row gap-2 mb-4">
-            <UInput v-model="search" icon="i-heroicons-magnifying-glass" placeholder="ค้นหาอาหาร..." autofocus
+            <UInput 
+            v-model="search" icon="i-heroicons-magnifying-glass" placeholder="ค้นหาอาหาร..." autofocus
               class="w-full" :ui="{ trailing: 'pe-1' }">
               <template v-if="search?.length" #trailing>
-                <UButton color="neutral" variant="link" size="sm" icon="i-lucide-circle-x" aria-label="Clear input"
+                <UButton 
+                color="neutral" variant="link" size="sm" icon="i-lucide-circle-x" aria-label="Clear input"
                   @click="search = ''" />
               </template>
             </UInput>
 
             <USelectMenu v-model="category" value-key="value" :items="categories" class="w-full sm:w-48" />
 
-            <UButton color="neutral" variant="outline" size="sm" icon="i-heroicons-arrow-path" label="เคลียร์"
+            <UButton 
+            color="neutral" variant="outline" size="sm" icon="i-heroicons-arrow-path" label="เคลียร์"
               class="w-full sm:w-auto" @click="search = ''; category = 'all'" />
           </div>
 
@@ -283,9 +321,10 @@ function onPrinted(orderId) {
               ไม่พบเมนูอาหาร
             </div>
             <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3 pb-6">
-              <UCard v-for="item in filteredData" :key="item.id"
+              <UCard 
+              v-for="item in filteredData" :key="item.id"
                 class="flex flex-col bg-gray-50 dark:bg-gray-800 cursor-pointer hover:shadow-lg  h-auto gap-3"
-                @click="addToCart(item)">
+                @click="addToCart({ ...item, qty: 1 })">
                 <img :src="item.image" class="rounded-lg aspect-square object-cover" />
                 <div class="mt-2 font-semibold truncate text-sm sm:text-base">{{ item.name }}</div>
                 <div class="flex-1 text-xs sm:text-sm">{{ item.category.name }}</div>
@@ -308,13 +347,15 @@ function onPrinted(orderId) {
                 <UIcon name="i-heroicons-user" /> ลูกค้า
               </label>
               <USelectMenu 
-                v-model="selectedCustomerId" :items="customerOptions" value-key="value"
+              v-model="selectedCustomerId" :items="customerOptions" value-key="value"
                 placeholder="เลือกลูกค้า" searchable :searchable-placeholder="'พิมพ์เพื่อค้นหา'" class="w-full sm:w-1/3"
                 @search="searchCustomer" />
               <div v-if="addingNewCustomer" class="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
                 <UForm class="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto" @submit="addCustomer">
-                <UInput  v-model="newCustomerName" autofocus placeholder="ชื่อลูกค้าใหม่" class="flex-1 w-full sm:w-auto" />
-                <UButton type="submit" :loading="loadingAddCustomer" color="primary">บันทึก</UButton>
+                  <UInput 
+                  v-model="newCustomerName" autofocus placeholder="ชื่อลูกค้าใหม่"
+                    class="flex-1 w-full sm:w-auto" />
+                  <UButton type="submit" :loading="loadingAddCustomer" color="primary">บันทึก</UButton>
                 </UForm>
               </div>
               <UButton variant="link" @click="addingNewCustomer = !addingNewCustomer">
@@ -329,7 +370,9 @@ function onPrinted(orderId) {
                   ตะกร้าว่างเปล่า<br>กรุณาเลือกสินค้าเพื่อเพิ่มลงในตะกร้า
                 </div>
 
-                <div v-else v-for="(item, index) in cart" :key="item._uid"
+                <div v-else>
+                <div 
+                  v-for="(item, index) in cart" :key="item._uid"
                   class="border border-gray-300 dark:border-gray-700 rounded-xl p-0 sm:p-2 shadow-sm hover:shadow-md transition-all bg-gray-50 dark:bg-gray-800 mb-2"
                   :class="{ 'bg-yellow-100 dark:bg-yellow-700': highlightItem === item._uid }">
                   <!-- ส่วนหัว -->
@@ -356,11 +399,13 @@ function onPrinted(orderId) {
                       <UInput v-model.number="item.price" type="number" size="sm" step="10" class="w-20" />
                     </div>
                     <div class="col-span-5 flex items-center justify-center gap-2">
-                      <UButton icon="i-heroicons-minus" size="sm" color="neutral" variant="ghost"
+                      <UButton 
+                        icon="i-heroicons-minus" size="sm" color="neutral" variant="ghost"
                         @click="decreaseQty(index)" />
                       <UBadge v-if="item.qty > 1" color="error" variant="subtle">{{ item.qty }}</UBadge>
                       <span v-else class="w-6 text-xs sm:text-sm text-center">{{ item.qty }}</span>
-                      <UButton icon="i-heroicons-plus" size="sm" color="neutral" variant="ghost"
+                      <UButton 
+                        icon="i-heroicons-plus" size="sm" color="neutral" variant="ghost"
                         @click="increaseQty(index)" />
                     </div>
                     <div
@@ -369,8 +414,8 @@ function onPrinted(orderId) {
                     </div>
                   </div>
                 </div>
+                </div>
 
-                
               </transition-group>
             </div>
           </div>
@@ -378,8 +423,8 @@ function onPrinted(orderId) {
           <!-- 🔹 สรุปออเดอร์ (sticky ด้านล่าง) -->
           <div
             class="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4 sticky bottom-0 z-10 space-y-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-900">
-            <UTextarea 
-              v-model="orderNote" :rows="1" class="w-full text-sm sm:text-base" icon="i-lucide-scroll-text"
+            <UTextarea
+               v-model="orderNote" :rows="1" class="w-full text-sm sm:text-base" icon="i-lucide-scroll-text"
               placeholder="รายละเอียดเพิ่มเติมของทั้งออเดอร์ เช่น 'แยกถุง', 'ส่งก่อนเที่ยง'" />
             <div class="flex justify-between items-center font-semibold text-base sm:text-lg">
               <div>รวมทั้งหมด: ({{ cart.length }} รายการ)</div>
@@ -389,9 +434,18 @@ function onPrinted(orderId) {
               <UButton class="flex-[1]" color="neutral" block @click="cart = []; orderNote = ''">
                 <UIcon name="i-lucide-brush-cleaning" /> ล้างตะกร้า
               </UButton>
-              <UButton :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-[2]" color="success" block @click="submitOrder">
+              <UButton 
+                :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-[2]"
+                color="success" block @click="submitOrder">
                 <UIcon name="i-heroicons-check-circle" /> ยืนยันคำสั่งซื้อ
               </UButton>
+
+              <OrderReceiptModal 
+                v-if="showReceipt && currentOrder" :model-value="showReceipt" :order="currentOrder"
+                @close="showReceipt = false"
+                @edit="handleEdit" 
+                @printed="onPrinted" />
+
             </div>
 
           </div>
