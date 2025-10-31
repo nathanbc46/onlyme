@@ -330,7 +330,7 @@ function onPrinted(orderId: string) {
             </div>
             <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3 pb-6">
               <UCard 
-              v-for="item in filteredData" :key="item.id"
+              v-for="item in filteredData" :key="item.id" :title="item.name"
                 class="flex flex-col bg-gray-50 dark:bg-gray-800 cursor-pointer hover:shadow-lg  h-auto gap-3"
                 @click="addToCart({ ...item, qty: 1 })">
                 <img v-if="item.image" :src="item.image" class="rounded-lg aspect-square object-cover" />
