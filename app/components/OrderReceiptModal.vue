@@ -86,21 +86,21 @@ const printReceipt = () => {
 }
 
 
-const onEdit = () => emit('edit', props.order)
+// const onEdit = () => emit('edit', props.order)
 </script>
 
 <template>
   <div>
     <!-- Modal -->
-    <UModal :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" :open="show" size="lg">
+    <UModal :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" :open="show" size="lg" :close="{ onClick : close }" >
 
       <template #body>
-
+        <!-- 
         <div class="flex items-end justify-between w-full">
-          <!-- <div>
+          <div>
             <h3 class="text-lg font-semibold">สรุปคำสั่งซื้อ — #{{ order.orderNumber }}</h3>
             <p class="text-sm text-gray-500">ลูกค้า: {{ order.customer?.name || '-' }} • {{ formattedDate }}</p>
-          </div> -->
+          </div>
           <div></div>
           <div class="flex gap-2 items-end">
             <UButton size="sm" variant="outline" icon="i-lucide-copy" @click="copyReceipt">คัดลอก</UButton>
@@ -108,7 +108,7 @@ const onEdit = () => emit('edit', props.order)
             <UButton size="sm" color="primary" icon="i-heroicons-pencil-square" @click="onEdit">แก้ไข</UButton>
           </div>
         </div>
-
+        -->
 
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -159,7 +159,7 @@ const onEdit = () => emit('edit', props.order)
             <textarea readonly rows="8" class="w-full p-2 border rounded text-sm" :value="receiptText" />
             <div class="text-xs text-gray-500">กด "คัดลอก" เพื่อส่งให้ลูกค้าทางแชท</div>
             <div class="mt-auto flex gap-2">
-              <UButton class="flex-1" @click="copyReceipt">
+              <UButton class="flex-1" color="neutral" @click="copyReceipt">
                 <UIcon name="i-lucide-copy" /> คัดลอก
               </UButton>
               <UButton class="flex-1" color="success" @click="printReceipt">
@@ -173,7 +173,7 @@ const onEdit = () => emit('edit', props.order)
 
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton variant="ghost" @click="close">ปิด</UButton>
+          <!-- <UButton variant="ghost" @click="close">ปิด</UButton> -->
           <UButton color="primary" @click="confirmClose">ปิดและกลับหน้าขาย</UButton>
         </div>
       </template>
