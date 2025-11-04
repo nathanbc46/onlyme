@@ -1,9 +1,9 @@
 import dayjs from 'dayjs'
-import advancedFormat from 'dayjs/plugin/advancedFormat'
-import dayOfYear from 'dayjs/plugin/dayOfYear'
-import isoWeek from 'dayjs/plugin/isoWeek'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
+import advancedFormat from 'dayjs/plugin/advancedFormat.js'
+import dayOfYear from 'dayjs/plugin/dayOfYear.js'
+import isoWeek from 'dayjs/plugin/isoWeek.js'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
 
 dayjs.extend(advancedFormat)
 dayjs.extend(dayOfYear)
