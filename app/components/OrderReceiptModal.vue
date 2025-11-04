@@ -26,8 +26,8 @@ const format = (v = 0) => Number(v).toFixed(0)
 const total = computed(() => Math.max(0, subtotal.value - (props.order.discount || 0) + (props.order.tax || 0))) */
 
 const formattedDate = computed(() => {
-  const d = props.order.createdAt ? new Date(props.order.createdAt) : new Date()
-  return d.toLocaleString()
+  const d = props.order.createdAt ? formatDateTime(props.order.createdAt) : new Date()
+  return d
 })
 
 // const qrDataUrl = computed(() => 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==')
@@ -113,8 +113,16 @@ const printReceipt = () => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Receipt Preview -->
+
+          <!-- Copy text -->
+          <div class="p-4 flex flex-col gap-3">
+            <h5 class="font-semibold">ข้อความสำหรับลูกค้า</h5>
+            <textarea readonly rows="8" class="w-full p-2 border rounded text-sm" :value="receiptText" />
+          </div>
+          
           <div class="p-4">
             <!-- ✅ พื้นที่พิมพ์เฉพาะใบเสร็จ -->
+              <h5 class="font-semibold">ข้อความสำหรับพิมพ์</h5>
             <div id="printable-area" class="bg-white text-gray-900">
               <div class="flex justify-between text-xs items-center font-bold  border-b border-black w-full">
                 <span>(OnlyMe)</span>
@@ -140,7 +148,7 @@ const printReceipt = () => {
                 <div class="flex justify-between" v-if="order.discount"><span>ส่วนลด</span><span>-฿{{
                   format(order.discount) }}</span></div>-->
                 <div v-if="order.remark" class="flex justify-between">
-                  <span>หมายเหตุ</span><span>{{order.remark}}</span>
+                  <span></span><span>**{{order.remark}}**</span>
                 </div> 
                 <div class="flex justify-between border-t font-bold"><span>รวมทั้งหมด</span><span>฿{{
                   format(order.totalAmount) }}</span></div>
@@ -153,28 +161,35 @@ const printReceipt = () => {
             </div>
           </div>
 
-          <!-- Copy text -->
-          <div class="p-4 flex flex-col gap-3">
-            <h5 class="font-semibold">ข้อความสำหรับลูกค้า</h5>
-            <textarea readonly rows="8" class="w-full p-2 border rounded text-sm" :value="receiptText" />
-            <div class="text-xs text-gray-500">กด "คัดลอก" เพื่อส่งให้ลูกค้าทางแชท</div>
-            <div class="mt-auto flex gap-2">
-              <UButton class="flex-1" color="neutral" @click="copyReceipt">
-                <UIcon name="i-lucide-copy" /> คัดลอก
-              </UButton>
-              <UButton class="flex-1" color="success" @click="printReceipt">
-                <UIcon name="i-heroicons-printer" /> ปริ้น
-              </UButton>
-            </div>
-          </div>
 
+        </div>
+        <div class="grid gap-4">
+          <div class="text-xs text-gray-500">
+            กด "คัดลอก" เพื่อส่งให้ลูกค้าทางแชท
+          </div>
+          <div class="mt-auto flex gap-2">
+            <UButton
+              class="flex-1 flex items-center justify-center gap-2"
+              color="neutral"
+              @click="copyReceipt"
+            >
+              <UIcon name="i-lucide-copy" /> <span>คัดลอก</span>
+            </UButton>
+            <UButton
+              class="flex-1 flex items-center justify-center gap-2"
+              color="success"
+              @click="printReceipt"
+            >
+              <UIcon name="i-heroicons-printer" /> <span>ปริ้น</span>
+            </UButton>
+          </div>
         </div>
       </template>
 
       <template #footer>
         <div class="flex justify-end gap-2">
           <!-- <UButton variant="ghost" @click="close">ปิด</UButton> -->
-          <UButton color="primary" @click="confirmClose">ปิดและกลับหน้าขาย</UButton>
+          <UButton color="primary" @click="confirmClose"><UIcon name="i-lucide-x" />ปิดและกลับหน้าขาย</UButton>
         </div>
       </template>
     </UModal>

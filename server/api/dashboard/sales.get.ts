@@ -1,0 +1,166 @@
+import dayjs from 'dayjs'
+import advancedFormat from 'dayjs/plugin/advancedFormat'
+import dayOfYear from 'dayjs/plugin/dayOfYear'
+import isoWeek from 'dayjs/plugin/isoWeek'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
+dayjs.extend(advancedFormat)
+dayjs.extend(dayOfYear)
+dayjs.extend(isoWeek)
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault('Asia/Bangkok')
+
+export default defineEventHandler(async () => {
+
+  try {
+    const now = dayjs()
+
+    // ==== 1️⃣ ยอดขายวันนี้ vs เมื่อวาน ====
+    const startToday = now.startOf('day').toDate() as Date
+    const endToday = now.endOf('day').toDate()
+    const startYesterday = now.subtract(1, 'day').startOf('day').toDate()
+    const endYesterday = now.subtract(1, 'day').endOf('day').toDate()
+
+    const [today, yesterday] = await Promise.all([
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { createdAt: { gte: startToday, lte: endToday } },
+      }),
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { createdAt: { gte: startYesterday, lte: endYesterday } },
+      }),
+    ])
+
+    const todaySales = Number(today._sum.totalAmount || 0)
+    const yesterdaySales = Number(yesterday._sum.totalAmount || 0)
+    const todayGrowth = yesterdaySales === 0 ? null : ((todaySales - yesterdaySales) / yesterdaySales) * 100
+
+    // ==== 2️⃣ ยอดขายเดือนนี้ vs เดือนที่แล้วในช่วงวันเดียวกัน ====
+    const startOfMonth = now.startOf('month')
+    const dayOfMonth = now.date()
+    const endOfCurrentPeriod = startOfMonth.add(dayOfMonth - 1, 'day').endOf('day')
+
+    const startLastMonth = startOfMonth.subtract(1, 'month')
+    const endLastMonthSamePeriod = startLastMonth.add(dayOfMonth - 1, 'day').endOf('day')
+
+    const [thisMonth, lastMonth] = await Promise.all([
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { createdAt: { gte: startOfMonth.toDate(), lte: endOfCurrentPeriod.toDate() } },
+      }),
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { createdAt: { gte: startLastMonth.toDate(), lte: endLastMonthSamePeriod.toDate() } },
+      }),
+    ])
+
+    const thisMonthSales = Number(thisMonth._sum.totalAmount || 0)
+    const lastMonthSales = Number(lastMonth._sum.totalAmount || 0)
+    const monthGrowth = lastMonthSales === 0 ? null : ((thisMonthSales - lastMonthSales) / lastMonthSales) * 100
+
+
+    // ===== 6️⃣ ยอดขายเฉลี่ยต่อวันในเดือนนี้ =====
+    const daysPassed = dayOfMonth
+    const avgDailySales = daysPassed > 0 ? thisMonthSales / daysPassed : 0
+
+
+    // ===== 3️⃣ ยอดขายปีนี้ vs ปีที่แล้ว (ช่วงวันเดียวกัน) =====
+    const startOfYear = now.startOf('year')
+    const dayOfYearNum = now.dayOfYear()
+    const endOfCurrentYearPeriod = startOfYear.add(dayOfYearNum - 1, 'day').endOf('day')
+
+    const startLastYear = startOfYear.subtract(1, 'year')
+    const endLastYearSamePeriod = startLastYear.add(dayOfYearNum - 1, 'day').endOf('day')
+
+    const [thisYear, lastYear] = await Promise.all([
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: {
+          status: 'CLOSED',
+          createdAt: { gte: startOfYear.toDate(), lte: endOfCurrentYearPeriod.toDate() },
+        },
+      }),
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: {
+          status: 'CLOSED',
+          createdAt: { gte: startLastYear.toDate(), lte: endLastYearSamePeriod.toDate() },
+        },
+      }),
+    ])
+
+    const thisYearSales = Number(thisYear._sum.totalAmount || 0)
+    const lastYearSales = Number(lastYear._sum.totalAmount || 0)
+    const yearGrowth = lastYearSales === 0 ? null : ((thisYearSales - lastYearSales) / lastYearSales) * 100
+
+
+    // ===== 4️⃣ ยอดขายย้อนหลัง 7 วัน (ทำกราฟ) =====
+    const start7DaysAgo = now.subtract(6, 'day').startOf('day').toDate()
+    const end7Days = now.endOf('day').toDate()
+
+    const last7DaysOrders = await prisma.order.findMany({
+      where: {
+        status: 'CLOSED',
+        createdAt: { gte: start7DaysAgo, lte: end7Days },
+      },
+      select: {
+        totalAmount: true,
+        createdAt: true,
+      },
+    })
+
+    // รวมยอดต่อวัน
+    const dailySalesMap = new Map<string, number>()
+    for (let i = 0; i < 7; i++) {
+      const date = now.subtract(6 - i, 'day').format('YYYY-MM-DD')
+      dailySalesMap.set(date, 0)
+    }
+
+    for (const order of last7DaysOrders) {
+      const date = dayjs(order.createdAt).tz().format('YYYY-MM-DD')
+      dailySalesMap.set(date, (dailySalesMap.get(date) || 0) + Number(order.totalAmount))
+    }
+
+    const last7DaysSales = Array.from(dailySalesMap.entries()).map(([date, total]) => ({
+      date,
+      total,
+    }))
+
+    // ✅ ส่งกลับข้อมูลทั้งหมด
+    return {
+      today: {
+        dateStart: startToday,
+        dateEnd: endToday,
+        total: todaySales,
+        compareToYesterday: yesterdaySales,
+        growthPercent: todayGrowth,
+      },
+      month: {
+        dateStart: startOfMonth.toDate(),
+        total: thisMonthSales,
+        compareToLastMonth: lastMonthSales,
+        growthPercent: monthGrowth,
+        averageDailySales: avgDailySales,
+      },
+      year: {
+        dateStart: startOfYear.toDate(),
+        total: thisYearSales,
+        compareToLastYear: lastYearSales,
+        growthPercent: yearGrowth,
+      },
+      chart: {
+        last7Days: last7DaysSales,
+      },
+    }
+  } catch (error) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: (error as Error).message
+    })
+  }
+
+
+})

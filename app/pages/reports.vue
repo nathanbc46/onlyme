@@ -127,7 +127,13 @@ const columns: TableColumn<OrderTable>[] = [
     }
    }, 
    { accessorKey: 'orderItems', header: 'Order Items' },
-  { accessorKey: 'createdAt', header: 'Created At' },
+  { accessorKey: 'createdAt', header: 'Created At',
+    cell: ({ row }) => {
+      const createdAt = new Date(row.getValue('createdAt'))
+      const formatted = formatDateTime(createdAt)
+      return h('div', { class: 'text-center' }, formatted)
+    }
+   },
   ]
 </script>
 
