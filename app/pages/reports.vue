@@ -56,8 +56,7 @@ const loadData = async () => {
     orders.value = data.data || []
     meta.value = data.meta || { total: 0 }
 
-    console.log('meta',meta.value)
-
+    //console.log('meta',meta.value)
     // console.log('Orders',orders.value)
   } catch (err) {
     console.error(err)

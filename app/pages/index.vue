@@ -48,9 +48,10 @@ const stats = computed(() => {
 
     <!-- 🔹 Body -->
     <template #body>
-        <div v-if="error" class="p-4 text-error italic">Error: {{ error?.message }}</div>
-        <HomeStats v-else-if="!pending && data" :stats="stats" />
-        <div v-else class="p-4">Loading...</div>
+      <div v-if="error" class="p-4 text-error italic">Error: {{ error?.message }}</div>
+      <ClientOnly>
+        <HomeStats v-if="data" :stats="stats" :pending="pending" />
+      </ClientOnly>
     </template>
   </UDashboardPanel>
 </template>
