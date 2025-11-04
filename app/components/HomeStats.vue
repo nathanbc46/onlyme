@@ -6,17 +6,13 @@ const props = defineProps<{
         title: string
         value: string | number
         variation: number        
-    }[],
-    pending?: boolean
+    }[]
 }>()
 
 
 </script>
 <template>
-      <div v-if="pending">
-        <UIcon name="i-lucide-loader" spin /> Loading ...
-      </div>
-      <UPageGrid v-else class="lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-px">
+      <UPageGrid class="lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-px">
         <UPageCard
           v-for="(stat, index) in props.stats"
           :key="index"
