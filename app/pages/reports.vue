@@ -179,28 +179,28 @@ const columns: TableColumn<OrderTable>[] = [
       :loading="status === 'pending'" 
       class="flex-1" >
       <template #loading>
-        <UIcon name="i-lucide-loader" spin /> Loading products...
+        <UIcon name="i-lucide-loader" spin /> Loading ...
       </template>
     </UTable>
 
-      <div class="flex items-center justify-center gap-6 border-t border-gray-200 mt-6 pt-4 text-sm text-gray-600">
-  <div class="flex items-center gap-2">
-    <span class="font-medium text-gray-700">Total:</span>
-    <span>{{ meta?.total || 0 }}</span>
-    <span class="text-gray-400">•</span>
-    <span>Page</span>
-    <span class="font-semibold text-gray-700">{{ pagination.pageIndex }}</span>
-    <span>of</span>
-    <span class="font-semibold text-gray-700">{{ Math.ceil((meta?.total || 0) / pagination.pageSize) }}</span>
-  </div>
+      <div class="flex items-center justify-center gap-6  text-sm text-gray-600">
+        <div class="flex items-center gap-2">
+          <span class="font-medium text-gray-700">Total:</span>
+          <span>{{ meta?.total || 0 }}</span>
+          <span class="text-gray-400">•</span>
+          <span>Page</span>
+          <span class="font-semibold text-gray-700">{{ pagination.pageIndex }}</span>
+          <span>of</span>
+          <span class="font-semibold text-gray-700">{{ Math.ceil((meta?.total || 0) / pagination.pageSize) }}</span>
+        </div>
 
-  <UPagination
-    v-model:page="pagination.pageIndex"
-    :items-per-page="pagination.pageSize"
-    :total="meta?.total || 0"
-    class="!text-sm"
-  />
-</div>
+        <UPagination
+          v-model:page="pagination.pageIndex"
+          :items-per-page="pagination.pageSize"
+          :total="meta?.total || 0"
+          class="text-sm!"
+        />
+    </div>
 
 
     </template>
