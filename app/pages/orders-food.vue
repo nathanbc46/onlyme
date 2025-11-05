@@ -302,25 +302,53 @@ function onPrinted(orderId: string) {
       <div class="flex flex-col lg:grid lg:grid-cols-2 h-full overflow-hidden">
 
         <!-- 🍛 เมนูอาหาร -->
-        <div class="flex flex-col p-4 h-full overflow-hidden">
+        <div class="flex flex-col p-1 h-full overflow-hidden">
           <!-- Search & Filter -->
-          <div class="flex flex-col sm:flex-row gap-2 mb-4">
-            <UInput 
-            v-model="search" icon="i-heroicons-magnifying-glass" placeholder="ค้นหาอาหาร..." autofocus
-              class="w-full" :ui="{ trailing: 'pe-1' }">
-              <template v-if="search?.length" #trailing>
-                <UButton 
-                color="neutral" variant="link" size="sm" icon="i-lucide-circle-x" aria-label="Clear input"
-                  @click="search = ''" />
-              </template>
-            </UInput>
+              <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center">
+                <!-- กล่องรวมช่องค้นหา + หมวดหมู่ + ปุ่มเคลียร์ -->
+                <div class="flex flex-row gap-2 w-full">
+                  <!-- ช่องค้นหา -->
+                  <UInput 
+                    v-model="search"
+                    icon="i-heroicons-magnifying-glass"
+                    placeholder="ค้นหาอาหาร..."
+                    autofocus
+                    class="flex-1"
+                    :ui="{ trailing: 'pe-1' }"
+                  >
+                    <template v-if="search?.length" #trailing>
+                      <UButton 
+                        color="neutral"
+                        variant="link"
+                        size="sm"
+                        icon="i-lucide-circle-x"
+                        aria-label="Clear input"
+                        @click="search = ''"
+                      />
+                    </template>
+                  </UInput>
 
-            <USelectMenu v-model="category" value-key="value" :items="categories" class="w-full sm:w-48" />
+                  <!-- ช่องเลือกหมวดหมู่ -->
+                  <USelectMenu
+                    v-model="category"
+                    value-key="value"
+                    :items="categories"
+                    class="w-32 sm:w-48"
+                  />
 
-            <UButton 
-            color="neutral" variant="outline" size="sm" icon="i-heroicons-arrow-path" label="เคลียร์"
-              class="w-full sm:w-auto" @click="search = ''; category = 'all'" />
-          </div>
+                  <!-- ปุ่มเคลียร์ -->
+                  <UButton 
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    icon="i-heroicons-arrow-path"
+                    label="เคลียร์"
+                    class="hidden sm:inline-flex sm:w-auto"
+                    @click="search = ''; category = 'all'"
+                  />
+                </div>
+              </div>
+
 
           <!-- Menu Cards -->
           <div
@@ -333,7 +361,7 @@ function onPrinted(orderId: string) {
               v-for="item in filteredData" :key="item.id" :title="item.name"
                 class="flex flex-col bg-gray-50 dark:bg-gray-800 cursor-pointer hover:shadow-lg dark:hover:shadow-primary/30 transition-shadow duration-200 h-auto gap-3"
                 @click="addToCart({ ...item, qty: 1 })">
-                <img v-if="item.image" :src="item.image" class="rounded-lg aspect-square object-cover" />
+                <img v-if="item.image" :src="item.image" class="rounded-lg aspect-square object-cover" >
                 <div class="mt-2 font-semibold truncate text-sm sm:text-base">{{ item.name }}</div>
                 <div class="flex-1 text-xs sm:text-sm">{{ item.category.name }}</div>
                 <div class="text-gray-500 text-sm sm:text-base">฿{{ item.price ?? 0 }}</div>
@@ -345,31 +373,71 @@ function onPrinted(orderId: string) {
         <!-- 🧺 ตะกร้าสั่งซื้อ -->
         <div class="flex flex-col h-full overflow-hidden">
           <div class="flex-1 flex flex-col p-2 sm:p-4 overflow-y-auto min-h-0">
-            <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+            <h2 class="hidden sm:inline-flex sm:w-auto text-lg font-bold mb-3 items-center gap-2">
               <UIcon name="i-heroicons-shopping-bag" /> ตะกร้าสั่งซื้อ
             </h2>
 
             <!-- ลูกค้า -->
-            <div class="rounded-xl p-2 mb-4 shrink-0 flex flex-col sm:flex-row gap-2 shadow-sm">
-              <label class="flex items-center gap-2">
-                <UIcon name="i-heroicons-user" /> ลูกค้า
-              </label>
-              <USelectMenu 
-              v-model="selectedCustomerId" :items="customerOptions" value-key="value"
-                placeholder="เลือกลูกค้า" searchable :searchable-placeholder="'พิมพ์เพื่อค้นหา'" class="w-full sm:w-1/3"
-                @search="searchCustomer" />
-              <div v-if="addingNewCustomer" class="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
-                <UForm class="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto" @submit="addCustomer">
+            <div class="rounded-xl p-2 mb-4 shrink-0 flex flex-col sm:flex-row items-start sm:items-center gap-2 shadow-sm">
+
+              <!-- กลุ่มซ้าย: label + select + ปุ่มเพิ่ม -->
+              <div class="flex flex-row flex-wrap items-center gap-2 w-full">
+                <!-- Label -->
+                <label class="hidden sm:inline-flex sm:w-auto items-center gap-2 whitespace-nowrap">
+                  <UIcon name="i-heroicons-user" /> ลูกค้า
+                </label>
+
+                <!-- Select ลูกค้า -->
+                <USelectMenu 
+                  v-model="selectedCustomerId"
+                  :items="customerOptions"
+                  value-key="value"
+                  placeholder="เลือกลูกค้า"
+                  searchable
+                  :searchable-placeholder="'พิมพ์เพื่อค้นหา'"
+                  class="flex-1 min-w-[140px] sm:w-1/3"
+                  @search="searchCustomer"
+                />
+
+                <!-- ปุ่มเพิ่มลูกค้าใหม่ -->
+                <UButton
+                  v-if="!addingNewCustomer"
+                  variant="link"
+                  class="whitespace-nowrap"
+                  @click="addingNewCustomer = !addingNewCustomer"
+                >
+                  {{ addingNewCustomer ? 'ยกเลิก' : '+ เพิ่มลูกค้าใหม่' }}
+                </UButton>
+              </div>
+
+              <!-- ฟอร์มเพิ่มลูกค้าใหม่ -->
+              <div v-if="addingNewCustomer" class="w-full">
+                <UForm class="flex flex-col sm:flex-row gap-2 items-center w-full" @submit="addCustomer">
                   <UInput 
-                  v-model="newCustomerName" autofocus placeholder="ชื่อลูกค้าใหม่"
-                    class="flex-1 w-full sm:w-auto" />
-                  <UButton type="submit" :loading="loadingAddCustomer" color="primary">บันทึก</UButton>
+                    v-model="newCustomerName"
+                    autofocus
+                    placeholder="ชื่อลูกค้าใหม่"
+                    class="flex-1 w-full sm:w-auto"
+                  />
+                  <UButton
+                    type="submit"
+                    :loading="loadingAddCustomer"
+                    color="primary"
+                    class="w-full sm:w-auto"
+                  >
+                    บันทึก
+                  </UButton>
+                  <UButton
+                    variant="link"
+                    class="w-full sm:w-auto"
+                    @click="addingNewCustomer = false"
+                  >
+                    ยกเลิก
+                  </UButton>
                 </UForm>
               </div>
-              <UButton variant="link" @click="addingNewCustomer = !addingNewCustomer">
-                {{ addingNewCustomer ? 'ยกเลิก' : '+ เพิ่มลูกค้าใหม่' }}
-              </UButton>
             </div>
+
 
             <!-- รายการสินค้าในตะกร้า -->
             <div ref="cartWrapper" class="flex-1 overflow-y-auto space-y-4 min-h-0">
@@ -439,11 +507,11 @@ function onPrinted(orderId: string) {
               <div>฿{{ totalPrice.toFixed(2) }}</div>
             </div>
             <div class="w-full flex gap-4">
-              <UButton class="flex-[1]" color="neutral" block @click="cart = []; orderNote = ''">
+              <UButton class="flex-1" color="neutral" block @click="cart = []; orderNote = ''">
                 <UIcon name="i-lucide-brush-cleaning" /> ล้างตะกร้า
               </UButton>
               <UButton 
-                :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-[2]"
+                :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-2"
                 :loading="loadingSubmit"
                 color="success" block @click="submitOrder">
                 <UIcon name="i-heroicons-check-circle" /> ยืนยันคำสั่งซื้อ

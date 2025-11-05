@@ -67,7 +67,7 @@ const loadData = async () => {
 }
 
 
-watch(searchTerm, debounce(loadData, 300))
+watch(searchTerm, debounce(loadData, 500))
 watch([() => pagination.value.pageIndex, () => pagination.value.pageSize], loadData, { immediate: true })
 
 const columnVisibility = ref({
