@@ -302,7 +302,7 @@ function onPrinted(orderId: string) {
       <div class="flex flex-col lg:grid lg:grid-cols-2 h-full overflow-hidden">
 
         <!-- 🍛 เมนูอาหาร -->
-        <div class="flex flex-col p-1 h-full overflow-hidden">
+        <div class="flex flex-col p-1 h-[70%] sm:h-full overflow-hidden">
           <!-- Search & Filter -->
               <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center">
                 <!-- กล่องรวมช่องค้นหา + หมวดหมู่ + ปุ่มเคลียร์ -->
@@ -497,15 +497,16 @@ function onPrinted(orderId: string) {
           </div>
 
           <!-- 🔹 สรุปออเดอร์ (sticky ด้านล่าง) -->
-          <div
-            class="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4 sticky bottom-0 z-10 space-y-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-900">
-            <UTextarea
-               v-model="orderNote" :rows="1" class="w-full text-sm sm:text-base" icon="i-lucide-scroll-text"
+          <div class="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4 sticky bottom-0 z-10 space-y-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-900">
+
+            <UInput
+               v-model="orderNote" size="sm" class="w-full text-sm sm:text-base" icon="i-lucide-scroll-text"
               placeholder="รายละเอียดเพิ่มเติมของทั้งออเดอร์ เช่น 'แยกถุง', 'ส่งก่อนเที่ยง'" />
             <div class="flex justify-between items-center font-semibold text-base sm:text-lg">
               <div>รวมทั้งหมด: ({{ cart.length }} รายการ)</div>
               <div>฿{{ totalPrice.toFixed(2) }}</div>
             </div>
+
             <div class="w-full flex gap-4">
               <UButton class="flex-1" color="neutral" block @click="cart = []; orderNote = ''">
                 <UIcon name="i-lucide-brush-cleaning" /> ล้างตะกร้า
