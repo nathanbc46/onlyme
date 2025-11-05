@@ -7,6 +7,8 @@ const { createCustomer } = useCustomer()
 const { createOrder } = useOrder()
 const { start, finish } = useLoadingIndicator()
 
+const { getSalesToday } = useDashboard()
+
 const toast = useToast()
 
 // --- ลูกค้า ---
@@ -15,6 +17,14 @@ const selectedCustomerId = ref<string>('')
 const addingNewCustomer = ref(false)
 const newCustomerName = ref('')
 const { data: customers, refresh } = await useFetch<{ id: string; name: string }[]>('/api/customers')
+
+
+const salesToday = await getSalesToday()
+//console.log('salesToday', salesToday)
+
+const salesTodayRef = ref<string | number | null>(0)
+salesTodayRef.value = salesToday?._sum.totalAmount
+
 
 const customerOptions = computed(() =>
   (customers.value || []).map(c => ({ label: c.name, value: c.id }))
@@ -211,6 +221,8 @@ async function submitOrder() {
       color: 'success'
     })
 
+    salesTodayRef.value = Number(salesTodayRef?.value ?? 0) + Number(totalPrice.value)
+
     if (!res || !res.id) {
       throw new Error('Invalid order response from server')
     }
@@ -284,6 +296,7 @@ function onPrinted(orderId: string) {
   // $fetch(`/api/orders/${orderId}/printed`, { method: 'POST' }).catch(() => { })
 }
 
+
 </script>
 
 <template>
@@ -293,6 +306,9 @@ function onPrinted(orderId: string) {
       <UDashboardNavbar title="Order Food">
         <template #leading>
           <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          ยอดขายวันนี้ :  <UBadge color="success" variant="subtle" size="lg" class="font-semibold">฿{{ salesTodayRef }}</UBadge>
         </template>
       </UDashboardNavbar>
     </template>
@@ -453,7 +469,7 @@ function onPrinted(orderId: string) {
                   :class="{ 'bg-yellow-100 dark:bg-yellow-700': highlightItem === item._uid }">
                   <!-- ส่วนหัว -->
                   <div class="grid grid-cols-12 gap-2 sm:gap-3 items-center">
-                    <div class="col-span-4 font-semibold truncate text-sm sm:text-base">
+                    <div class="col-span-4 font-semibold truncate text-sm sm:text-base" :title=" item.name">
                       <UBadge variant="subtle">{{ index + 1 }}</UBadge> {{ item.name }}
                     </div>
                     <div class="col-span-5">
