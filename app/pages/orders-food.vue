@@ -19,12 +19,13 @@ const newCustomerName = ref('')
 const { data: customers, refresh } = await useFetch<{ id: string; name: string }[]>('/api/customers')
 
 
+// --- ยอดขายวันนี้ ---
 const salesToday = await getSalesToday()
 //console.log('salesToday', salesToday)
 
 const salesTodayRef = ref<string | number | null>(0)
 salesTodayRef.value = salesToday?._sum.totalAmount
-
+//
 
 const customerOptions = computed(() =>
   (customers.value || []).map(c => ({ label: c.name, value: c.id }))
@@ -221,7 +222,7 @@ async function submitOrder() {
       color: 'success'
     })
 
-    salesTodayRef.value = Number(salesTodayRef?.value ?? 0) + Number(totalPrice.value)
+    salesTodayRef.value = (Number(salesTodayRef?.value ?? 0) + Number(totalPrice.value))
 
     if (!res || !res.id) {
       throw new Error('Invalid order response from server')
@@ -308,7 +309,7 @@ function onPrinted(orderId: string) {
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          ยอดขายวันนี้ :  <UBadge color="success" variant="subtle" size="lg" class="font-semibold">฿{{ salesTodayRef }}</UBadge>
+          ยอดขายวันนี้ :  <UBadge color="success" variant="subtle" size="lg" class="font-semibold">฿{{ salesTodayRef ?? 0 }}</UBadge>
         </template>
       </UDashboardNavbar>
     </template>

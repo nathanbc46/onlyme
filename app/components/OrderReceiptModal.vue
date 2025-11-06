@@ -148,7 +148,7 @@ const printReceipt = () => {
                 <div class="flex justify-between" v-if="order.discount"><span>ส่วนลด</span><span>-฿{{
                   format(order.discount) }}</span></div>-->
                 <div v-if="order.remark" class="flex justify-between">
-                  <span></span><span>**{{order.remark}}**</span>
+                  <span>**{{order.remark}}**</span>
                 </div> 
                 <div class="flex justify-between border-t font-bold"><span>รวมทั้งหมด</span><span>฿{{
                   format(order.totalAmount) }}</span></div>
