@@ -262,7 +262,7 @@ interface Order {
   id: string
   orderNumber: string
   totalAmount: number | string
-  totalCost: number | string
+  totalCost: number | string | null
   status: string
   customer: {
     id: string
@@ -383,7 +383,7 @@ function onPrinted(orderId: string) {
             <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3 pb-6">
               <UCard 
               v-for="item in filteredData" :key="item.id" :title="item.name"
-                class="flex flex-col bg-gray-50 dark:bg-gray-800 cursor-pointer hover:shadow-lg dark:hover:shadow-primary/30 transition-shadow duration-200 h-auto gap-3"
+                class="flex flex-col bg-gray-50 dark:bg-gray-800 cursor-pointer hover:shadow-lg dark:hover:shadow-primary/30 transition-shadow duration-200 h-auto gap-3 hover:z-1"
                 @click="addToCart({ ...item, qty: 1 })">
                 <img v-if="item.image" :src="item.image" class="rounded-lg aspect-square object-cover" >
                 <div class="mt-2 font-semibold truncate text-sm sm:text-base">{{ item.name }}</div>

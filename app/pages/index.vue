@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { data, pending, error } = useFetch('/api/dashboard/sales')
 
+console.log('data', data.value)
 const stats = computed(() => {
 
   if (!data.value) return []
@@ -69,7 +70,9 @@ const stats = computed(() => {
   ]
 })
 
-
+const columnVisibility = ref({
+  id: false // ซ่อนคอลัมน์ id
+})
 </script>
 <template>
   <UDashboardPanel id="index">
@@ -88,7 +91,19 @@ const stats = computed(() => {
      
       <ClientOnly v-if="!pending && data">
         <HomeStats :stats="stats" :pending="pending" />
+        <UPageGrid class="lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-6">
+          <LineChart :data="data.chart.last7Days" title="ยอดขาย 7 วันล่าสุด" series-name="ยอดขาย" />
+          <UCard>
+            <template #header>
+              <h3 class="text-lg font-semibold">Top 5 สินค่าขายดี</h3>
+            </template>
+            <template #default>
+              <UTable v-model:column-visibility="columnVisibility" :data="data.topProducts" />
+            </template>
+          </UCard>
+        </UPageGrid>
       </ClientOnly>
+      
       <div v-else>
         <UIcon name="i-lucide-loader" spin /> Loading ...
       </div>

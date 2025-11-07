@@ -31,7 +31,7 @@ const props = defineProps<{
             leadingIcon: 'text-'+stat.bg,
             title: 'font-normal text-muted text-xs uppercase'
           }"
-          class="lg:rounded-none first:rounded-l-lg last:rounded-r-lg hover:z-1"
+          class="lg:rounded-none hover:z-1"
         >
           <div class="flex items-center gap-2">
             <span class="text-2xl font-semibold text-highlighted">

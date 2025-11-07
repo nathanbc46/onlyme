@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  //output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -14,52 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum OrderStatus {
-  OPEN
-  PENDING
-  CLOSED
-  CANCELLED
-}
-
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-
-  role       String?
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
-
-  productCategories ProductCategory[]
-  products          Product[]
+  id                String            @id
+  name              String
+  email             String            @unique
+  emailVerified     Boolean           @default(false)
+  image             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @default(now()) @updatedAt
+  role              String?
+  banned            Boolean?          @default(false)
+  banReason         String?
+  banExpires        DateTime?
+  accounts          Account[]
   customers         Customer[]
   orders            Order[]
+  products          Product[]
+  productCategories ProductCategory[]
+  sessions          Session[]
 
-  @@unique([email])
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id             String   @id
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
   impersonatedBy String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@map("session")
 }
 
@@ -68,7 +49,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -78,6 +58,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -95,82 +76,85 @@ model Verification {
 
 model ProductCategory {
   id        String    @id @default(uuid())
-  name      String
-  user      User      @relation(fields: [userId], references: [id], onDelete: NoAction)
+  name      String    @unique
   userId    String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: NoAction)
 
-  @@unique([name])
   @@map("product_category")
 }
 
 model Product {
   id         String          @id @default(uuid())
-  name       String
+  name       String          @unique
   price      Decimal
-  cost       Decimal?         @default(0)
-  image      String?
-  user       User            @relation(fields: [userId], references: [id], onDelete: NoAction)
   userId     String
-  category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
   categoryId String
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
-
+  image      String?
+  cost       Decimal?        @default(0)
   orderItems OrderItem[]
+  category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  user       User            @relation(fields: [userId], references: [id], onDelete: NoAction)
 
-  @@unique([name])
   @@map("product")
 }
 
 model Customer {
   id        String   @id @default(uuid())
   name      String   @unique
-  email     String?  @unique
-  line      String?  @unique
-  phone     String?  @unique
+  email     String?  
+  line      String?  
+  phone     String?  
   address   String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: NoAction)
   userId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id], onDelete: NoAction)
+  orders    Order[]
 
-  orders Order[]
-
-  @@unique([name, email, line, phone])
   @@map("customer")
 }
 
 model Order {
   id          String      @id @default(uuid())
   orderNumber String      @unique
-  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: NoAction)
   customerId  String
-  user        User        @relation(fields: [userId], references: [id], onDelete: NoAction)
   userId      String
   totalAmount Decimal
-  totalCost   Decimal?     @default(0)
   status      OrderStatus @default(CLOSED)
   remark      String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  totalCost   Decimal?    @default(0)
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: NoAction)
+  user        User        @relation(fields: [userId], references: [id], onDelete: NoAction)
   orderItems  OrderItem[]
 
   @@map("order")
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
   orderId   String
-  product   Product @relation(fields: [productId], references: [id], onDelete: NoAction)
   productId String
   quantity  Int
-  cost      Decimal? @default(0)
   price     Decimal
   remark    String?
+  cost      Decimal? @default(0)
+  total     Decimal? @default(0)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: NoAction)
 
   @@map("order_item")
+}
+
+enum OrderStatus {
+  OPEN
+  PENDING
+  CLOSED
+  CANCELLED
 }

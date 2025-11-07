@@ -11,7 +11,7 @@ interface Order {
   id: string
   orderNumber: string
   totalAmount: number | string
-  totalCost: number | string
+  totalCost: number | string | null
   status: string
   createdAt: string
   customer: {
@@ -76,11 +76,20 @@ const columnVisibility = ref({
   id: false // ซ่อนคอลัมน์ id
 })
 
+const isPrintModalOpen = ref(false)
+const selectedOrder = ref<Order | null>(null)
+
+const openPrintModal = (order: Order) => {
+  selectedOrder.value = order
+  //console.log('selectedOrder',selectedOrder.value)
+  isPrintModalOpen.value = true
+}
+
 interface OrderTable {
   id: string
   orderNumber: string
   totalAmount: number | string
-  totalCost: number | string
+  totalCost: number | string | null
   profit: number
   createdAt: string
   customer: string
@@ -114,7 +123,18 @@ const columns: TableColumn<OrderTable>[] = [
       }
     },
   },
-  { accessorKey: 'orderNumber', header: 'Order Number' },
+  { accessorKey: 'orderNumber', header: 'Order Number',
+    cell: ({ row }) => {
+      return h(
+        'span',
+        { 
+          class: 'font-mono cursor-pointer hover:underline',
+          onClick: () => openPrintModal(orders.value.find(o => o.id === row.getValue('id'))!)
+        },
+        row.getValue('orderNumber')
+      )
+    }
+   },
 
 
   { accessorKey: 'customer', header: 'Customer' },
@@ -239,7 +259,15 @@ const columns: TableColumn<OrderTable>[] = [
         />
     </div>
 
+      <OrderReceiptModal 
+      v-if="isPrintModalOpen && selectedOrder" 
+      :model-value="isPrintModalOpen" 
+      :order="selectedOrder"
+      @close="isPrintModalOpen = false"/>
 
     </template>
   </UDashboardPanel>
+
+
+
 </template>

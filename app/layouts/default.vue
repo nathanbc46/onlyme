@@ -20,16 +20,17 @@ const links: NavigationMenuItem[][] = [[{
     open.value = false
   }
 }, {
-  label: 'Customers',
-  icon: 'i-lucide-users',
-  to: '/customers',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
   label: 'Reports',
   icon: 'i-lucide-chart-bar',
   to: '/reports',
+  onSelect: () => {
+    open.value = false
+  }
+}, 
+{
+  label: 'Customers',
+  icon: 'i-lucide-users',
+  to: '/customers',
   onSelect: () => {
     open.value = false
   }

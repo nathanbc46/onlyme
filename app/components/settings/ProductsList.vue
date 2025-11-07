@@ -227,6 +227,12 @@ const columns: TableColumn<ProductsTable>[] = [
   {
     accessorKey: 'price',
     header: ({ column }) => getHeader(column, 'Price'),
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
     cell: ({ row }) => {
       const price = Number.parseFloat(row.getValue('price'))
       const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(price)
@@ -238,6 +244,12 @@ const columns: TableColumn<ProductsTable>[] = [
   {
     accessorKey: 'cost',
     header: ({ column }) => getHeader(column, 'Cost'),
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
     cell: ({ row }) => {
       const cost = Number.parseFloat(row.getValue('cost'))
       const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(cost)

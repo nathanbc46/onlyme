@@ -147,6 +147,30 @@ export default defineEventHandler(async () => {
       total,
     }))
 
+    // ===== 5️⃣ Top 5 สินค้าขายดี =====
+    const topProducts = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: { quantity: true, price: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: 5,
+    })
+
+    const topProductDetails = await Promise.all(
+      topProducts.map(async (p) => {
+        const product = await prisma.product.findUnique({
+          where: { id: p.productId },
+          select: { id: true, name: true},
+        })
+        return {
+          id: product?.id,
+          name: product?.name,
+          totalSold: p._sum.quantity || 0,
+          totalRevenue: p._sum.price || 0,
+        }
+      })
+    )
+
+
     // ✅ ส่งกลับข้อมูลทั้งหมด
     return {
       today: {
@@ -176,6 +200,7 @@ export default defineEventHandler(async () => {
       chart: {
         last7Days: last7DaysSales,
       },
+      topProducts: topProductDetails
     }
   } catch (error) {
     throw createError({

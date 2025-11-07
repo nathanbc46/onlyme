@@ -189,7 +189,7 @@ const printReceipt = () => {
       <template #footer>
         <div class="flex justify-end gap-2">
           <!-- <UButton variant="ghost" @click="close">ปิด</UButton> -->
-          <UButton color="primary" @click="confirmClose"><UIcon name="i-lucide-x" />ปิดและกลับหน้าขาย</UButton>
+          <UButton color="primary" @click="confirmClose"><UIcon name="i-lucide-x" />ปิด</UButton>
         </div>
       </template>
     </UModal>
