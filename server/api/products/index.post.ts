@@ -4,6 +4,7 @@ const schema = z.object({
     name: z.string().min(2, 'Too short'),
     categoryId: z.string().optional(),
     price: z.number().min(0),
+    cost: z.number().min(0),
     image: z.string().optional()
 })
 
@@ -41,7 +42,8 @@ export default defineEventHandler(async (event) => {
                         id: user.id
                     }
                 },
-                price: parsed.data.price
+                price: parsed.data.price,
+                cost: parsed.data.cost
             },
             include: {
                 category: true

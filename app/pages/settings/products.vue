@@ -8,6 +8,7 @@ interface Product {
   id?: string
   name: string
   price: number
+  cost: number
   categoryId: string
   image?: string
 }
@@ -16,6 +17,7 @@ interface Products {
   id: string
   name: string
   price: number
+  cost: number
   category: {
     id: string
     name: string
@@ -98,6 +100,7 @@ async function onCreateProduct(formData: Product, imageFile?: File) {
         id: product?.id,
         name: product?.name,
         price: product?.price,
+        cost: product?.cost,
         category: {
           id: product?.category?.id,
           name: product?.category?.name

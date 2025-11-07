@@ -14,6 +14,7 @@ const props = withDefaults(
       id: string
       name: string
       price: number
+      cost: number
       image?: string
       category: {
         id: string
@@ -44,6 +45,7 @@ const isOpen = computed({
 const schema = z.object({
   name: z.string().min(2, 'Too short'),
   price: z.coerce.number().min(1, 'Must be at least 1'),
+  cost: z.coerce.number().min(1, 'Must be at least 1'),
   categoryId: z.string(),
   image: z.string().nullable().optional()
 })
@@ -52,6 +54,7 @@ type Schema = z.input<typeof schema>
 const state = reactive({
   name: props.product?.name ?? '',
   price: props.product?.price ?? 0,
+  cost: props.product?.cost ?? 0,
   categoryId: props.product?.category?.id ?? '',
   image: props.product?.image ?? ''
 })
@@ -63,6 +66,7 @@ watch(
     if (val) {
       state.name = val.name
       state.price = val.price
+      state.cost = val.cost
       state.categoryId = val.category?.id ?? ''
       state.image = val.image ?? ''
     }
@@ -123,6 +127,10 @@ function onFileClick() {
 
         <UFormField name="price" label="Product Price">
           <UInput v-model.number="state.price" type="number" />
+        </UFormField>
+
+        <UFormField name="cost" label="Product Cost">
+          <UInput v-model.number="state.cost" type="number" />
         </UFormField>
 
         <UFormField

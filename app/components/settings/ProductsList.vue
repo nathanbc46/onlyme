@@ -21,6 +21,7 @@ interface Products {
   id: string
   name: string
   price: number
+  cost: number
   category: {
     id: string
     name: string
@@ -31,6 +32,7 @@ interface Products {
 interface ProductForm {
   name: string
   price: number
+  cost: number
   categoryId: string
   image?: string
 }
@@ -166,6 +168,7 @@ type ProductsTable = {
   id: string
   name: string
   price: number
+  cost: number
   category: string
   image?: string
 }
@@ -179,6 +182,7 @@ const productsTable = computed<ProductsTable[]>(() => {
     id: product.id,
     name: product.name,
     price: product.price,
+    cost: product.cost,
     category: product.category.name,
     image: product?.image
   }))
@@ -218,10 +222,7 @@ const columns: TableColumn<ProductsTable>[] = [
   {
     accessorKey: 'category',
     header: ({ column }) => getHeader(column, 'Category'),
-    cell: ({ row }) => {
-      const color = 'success'
-      return h(UBadge, { class: ['capitalize', getCellClass(row)], variant: 'subtle', color }, () => row.getValue('category'))
-    }
+     cell: ({ row }) => h('div', { class: ['font-medium', getCellClass(row)] }, row.getValue('category')),
   },
   {
     accessorKey: 'price',
@@ -229,9 +230,23 @@ const columns: TableColumn<ProductsTable>[] = [
     cell: ({ row }) => {
       const price = Number.parseFloat(row.getValue('price'))
       const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(price)
-      return h('div', { class: ['text-right font-medium', getCellClass(row)] }, formatted)
+      return h('div', { class: 'text-right w-full' },
+            h(UBadge, { class: ['text-base',getCellClass(row)], variant: 'subtle', color: 'success' },  () => formatted)
+          )
     }
   },
+  {
+    accessorKey: 'cost',
+    header: ({ column }) => getHeader(column, 'Cost'),
+    cell: ({ row }) => {
+      const cost = Number.parseFloat(row.getValue('cost'))
+      const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(cost)
+        return h('div', { class: 'text-right w-full' },
+        h(UBadge, { class: ['text-base',getCellClass(row)], variant: 'subtle', color: 'warning' },  () => formatted)
+      )
+    }
+  },
+
   {
     id: 'actions',
     cell: ({ row }) => {

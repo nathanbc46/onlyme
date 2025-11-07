@@ -1,35 +1,71 @@
 <script setup lang="ts">
-
-const { data, pending, error } = await useFetch('/api/dashboard/sales')
+const { data, pending, error } = useFetch('/api/dashboard/sales')
 
 const stats = computed(() => {
+
   if (!data.value) return []
 
+  const todayProfit = Number(data.value.today.total) - Number(data.value.today.todayCost)
+  const monthProfit = Number(data.value.month.total) - Number(data.value.month.monthCost)
+  const yearProfit = Number(data.value.year.total) - Number(data.value.year.yearCost)
+  //console.log('data', data.value)
   return [
     {
       icon: 'i-lucide-trending-up',
       title: `ยอดขายวันนี้ [${formatDate(new Date(data.value.today.dateStart))}]`,
       value: data.value.today.total.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }),
-      variation: data.value.today.growthPercent ?? 0
+      variation: data.value.today.growthPercent ?? 0,
+      bg: 'info'
     },
     {
       icon: 'i-lucide-chart-line',
       title: `ยอดขายเดือนนี้ [${formatMonth(new Date(data.value.month.dateStart))}]`,
       value: data.value.month.total.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }),
-      variation: data.value.month.growthPercent ?? 0
+      variation: data.value.month.growthPercent ?? 0,
+      bg: 'info'
     },
     {
       icon: 'i-lucide-chart-scatter',
       title: 'ยอดขายเฉลี่ยต่อวันในเดือนนี้',
       value: data.value.month.averageDailySales.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 1 }),
-      variation: data.value.month.growthPercent ?? 0
+      variation: data.value.month.growthPercent ?? 0,
+      bg: 'info'
     },
     {
       icon: 'i-lucide-chart-no-axes-combined',
       title: `ยอดขายปีนี้ [${formatYear(new Date(data.value.year.dateStart))}]`,
       value: data.value.year.total.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }),
-      variation: data.value.year.growthPercent ?? 0
-    }
+      variation: data.value.year.growthPercent ?? 0,
+      bg: 'info'
+    },
+    {
+      icon: 'i-lucide-trending-up',
+      title: `กำไรวันนี้ [${formatDate(new Date(data.value.today.dateStart))}]`,
+      value: todayProfit.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }),
+      variation: 0,
+      bg: 'success'
+    },
+    {
+      icon: 'i-lucide-chart-line',
+      title: `กำไรเดือนนี้ [${formatMonth(new Date(data.value.today.dateStart))}]`,
+      value: monthProfit.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }),
+      variation: 0,
+      bg: 'success'
+    },
+    {
+      icon: 'i-lucide-chart-scatter',
+      title: `กำไรเฉลี่ยต่อวันในเดือนนี้`,
+      value: data.value.month.averageDailyProfit.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }),
+      variation: 0,
+      bg: 'success'
+    },
+    {
+      icon: 'i-lucide-chart-no-axes-combined',
+      title: `กำไรปีนี้ [${formatYear(new Date(data.value.year.dateStart))}]`,
+      value: yearProfit.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }),
+      variation: 0,
+      bg: 'success'
+    },
   ]
 })
 
@@ -49,9 +85,13 @@ const stats = computed(() => {
     <!-- 🔹 Body -->
     <template #body>
       <div v-if="error" class="p-4 text-error italic">Error: {{ error?.message }}</div>
-      <ClientOnly>
-        <HomeStats v-if="data" :stats="stats" :pending="pending" />
+     
+      <ClientOnly v-if="!pending && data">
+        <HomeStats :stats="stats" :pending="pending" />
       </ClientOnly>
+      <div v-else>
+        <UIcon name="i-lucide-loader" spin /> Loading ...
+      </div>
     </template>
   </UDashboardPanel>
 </template>

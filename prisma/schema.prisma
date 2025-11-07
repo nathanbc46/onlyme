@@ -110,6 +110,7 @@ model Product {
   id         String          @id @default(uuid())
   name       String
   price      Decimal
+  cost       Decimal?         @default(0)
   image      String?
   user       User            @relation(fields: [userId], references: [id], onDelete: NoAction)
   userId     String
@@ -150,6 +151,7 @@ model Order {
   user        User        @relation(fields: [userId], references: [id], onDelete: NoAction)
   userId      String
   totalAmount Decimal
+  totalCost   Decimal?     @default(0)
   status      OrderStatus @default(CLOSED)
   remark      String?
   createdAt   DateTime    @default(now())
@@ -166,6 +168,7 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id], onDelete: NoAction)
   productId String
   quantity  Int
+  cost      Decimal? @default(0)
   price     Decimal
   remark    String?
 

@@ -5,11 +5,11 @@ const props = defineProps<{
         icon: string,
         title: string
         value: string | number
-        variation: number        
+        variation: number  
+        bg?: string      
     }[],
     pending?: boolean
 }>()
-
 
 </script>
 <template>
@@ -27,7 +27,8 @@ const props = defineProps<{
           :ui="{
             container: 'gap-y-1.5',
             wrapper: 'items-start',
-            leading: 'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
+            leading: 'p-2.5 rounded-full bg-'+stat.bg+'/10 ring ring-inset ring-'+stat.bg+'/25 flex-col',
+            leadingIcon: 'text-'+stat.bg,
             title: 'font-normal text-muted text-xs uppercase'
           }"
           class="lg:rounded-none first:rounded-l-lg last:rounded-r-lg hover:z-1"

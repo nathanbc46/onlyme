@@ -2,6 +2,7 @@ interface Product {
     id?: string
     name: string
     price: number
+    cost: number
     image?: string
     categoryId: string
 }
@@ -10,6 +11,7 @@ interface Products {
     id: string
     name: string
     price: number
+    cost: number
     category: {
         id: string
         name: string

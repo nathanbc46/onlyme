@@ -23,7 +23,7 @@ export default defineEventHandler(async () => {
     const startYesterday = now.subtract(1, 'day').startOf('day').toDate()
     const endYesterday = now.subtract(1, 'day').endOf('day').toDate()
 
-    const [today, yesterday] = await Promise.all([
+    const [today, yesterday, todayCost] = await Promise.all([
       prisma.order.aggregate({
         _sum: { totalAmount: true },
         where: { createdAt: { gte: startToday, lte: endToday } },
@@ -32,11 +32,17 @@ export default defineEventHandler(async () => {
         _sum: { totalAmount: true },
         where: { createdAt: { gte: startYesterday, lte: endYesterday } },
       }),
+      prisma.order.aggregate({
+        _sum: { totalCost: true },
+        where: { createdAt: { gte: startToday, lte: endToday } },
+      }),
     ])
 
     const todaySales = Number(today._sum.totalAmount || 0)
     const yesterdaySales = Number(yesterday._sum.totalAmount || 0)
     const todayGrowth = yesterdaySales === 0 ? null : ((todaySales - yesterdaySales) / yesterdaySales) * 100
+
+    const todayCostVal = Number(todayCost._sum.totalCost || 0)
 
     // ==== 2️⃣ ยอดขายเดือนนี้ vs เดือนที่แล้วในช่วงวันเดียวกัน ====
     const startOfMonth = now.startOf('month')
@@ -46,7 +52,7 @@ export default defineEventHandler(async () => {
     const startLastMonth = startOfMonth.subtract(1, 'month')
     const endLastMonthSamePeriod = startLastMonth.add(dayOfMonth - 1, 'day').endOf('day')
 
-    const [thisMonth, lastMonth] = await Promise.all([
+    const [thisMonth, lastMonth, thisMonthCost] = await Promise.all([
       prisma.order.aggregate({
         _sum: { totalAmount: true },
         where: { createdAt: { gte: startOfMonth.toDate(), lte: endOfCurrentPeriod.toDate() } },
@@ -55,16 +61,21 @@ export default defineEventHandler(async () => {
         _sum: { totalAmount: true },
         where: { createdAt: { gte: startLastMonth.toDate(), lte: endLastMonthSamePeriod.toDate() } },
       }),
+      prisma.order.aggregate({
+        _sum: { totalCost: true },
+        where: { createdAt: { gte: startLastMonth.toDate(), lte: endOfCurrentPeriod.toDate() } },
+      }),
     ])
 
     const thisMonthSales = Number(thisMonth._sum.totalAmount || 0)
     const lastMonthSales = Number(lastMonth._sum.totalAmount || 0)
     const monthGrowth = lastMonthSales === 0 ? null : ((thisMonthSales - lastMonthSales) / lastMonthSales) * 100
-
+    const thisMonthCostVal = Number(thisMonthCost._sum.totalCost || 0)
 
     // ===== 6️⃣ ยอดขายเฉลี่ยต่อวันในเดือนนี้ =====
     const daysPassed = dayOfMonth
     const avgDailySales = daysPassed > 0 ? thisMonthSales / daysPassed : 0
+    const avgDailyProfit = daysPassed > 0 ? (thisMonthSales-thisMonthCostVal) / daysPassed : 0
 
 
     // ===== 3️⃣ ยอดขายปีนี้ vs ปีที่แล้ว (ช่วงวันเดียวกัน) =====
@@ -75,7 +86,7 @@ export default defineEventHandler(async () => {
     const startLastYear = startOfYear.subtract(1, 'year')
     const endLastYearSamePeriod = startLastYear.add(dayOfYearNum - 1, 'day').endOf('day')
 
-    const [thisYear, lastYear] = await Promise.all([
+    const [thisYear, lastYear, thisYearCost] = await Promise.all([
       prisma.order.aggregate({
         _sum: { totalAmount: true },
         where: {
@@ -90,12 +101,19 @@ export default defineEventHandler(async () => {
           createdAt: { gte: startLastYear.toDate(), lte: endLastYearSamePeriod.toDate() },
         },
       }),
+      prisma.order.aggregate({
+        _sum: { totalCost: true },
+        where: {
+          status: 'CLOSED',
+          createdAt: { gte: startOfYear.toDate(), lte: endOfCurrentYearPeriod.toDate() },
+        },
+      }),
     ])
 
     const thisYearSales = Number(thisYear._sum.totalAmount || 0)
     const lastYearSales = Number(lastYear._sum.totalAmount || 0)
     const yearGrowth = lastYearSales === 0 ? null : ((thisYearSales - lastYearSales) / lastYearSales) * 100
-
+    const thisYearCostVal = Number(thisYearCost._sum.totalCost || 0)
 
     // ===== 4️⃣ ยอดขายย้อนหลัง 7 วัน (ทำกราฟ) =====
     const start7DaysAgo = now.subtract(6, 'day').startOf('day').toDate()
@@ -137,6 +155,7 @@ export default defineEventHandler(async () => {
         total: todaySales,
         compareToYesterday: yesterdaySales,
         growthPercent: todayGrowth,
+        todayCost: todayCostVal
       },
       month: {
         dateStart: startOfMonth.toDate(),
@@ -144,12 +163,15 @@ export default defineEventHandler(async () => {
         compareToLastMonth: lastMonthSales,
         growthPercent: monthGrowth,
         averageDailySales: avgDailySales,
+        monthCost: thisMonthCostVal,
+        averageDailyProfit: avgDailyProfit
       },
       year: {
         dateStart: startOfYear.toDate(),
         total: thisYearSales,
         compareToLastYear: lastYearSales,
         growthPercent: yearGrowth,
+        yearCost: thisYearCostVal
       },
       chart: {
         last7Days: last7DaysSales,

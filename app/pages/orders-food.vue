@@ -71,6 +71,7 @@ interface Products {
   id: string
   name: string
   price: number
+  cost: number
   category: {
     id: string
     name: string
@@ -127,6 +128,7 @@ interface CartItem {
   id: string
   name: string
   price: number
+  cost: number
   qty: number
   note?: string
   _uid?: number
@@ -184,6 +186,9 @@ const orderNote = ref('')
 const totalPrice = computed(() =>
   cart.value.reduce((sum, i) => sum + (i.price || 0) * (i.qty || 0), 0)
 )
+const totalCost = computed(() =>
+  cart.value.reduce((sum, i) => sum + (i.cost || 0) * (i.qty || 0), 0)
+)
 
 const loadingSubmit = ref(false)
 async function submitOrder() {
@@ -208,7 +213,8 @@ async function submitOrder() {
     customerId: selectedCustomerId.value,
     items: cart.value,
     note: orderNote.value,
-    total: totalPrice.value
+    total: totalPrice.value,
+    totalCost: totalCost.value
   }
 
   try {
@@ -256,6 +262,7 @@ interface Order {
   id: string
   orderNumber: string
   totalAmount: number | string
+  totalCost: number | string
   status: string
   customer: {
     id: string
@@ -319,7 +326,7 @@ function onPrinted(orderId: string) {
       <div class="flex flex-col lg:grid lg:grid-cols-2 h-full overflow-hidden">
 
         <!-- 🍛 เมนูอาหาร -->
-        <div class="flex flex-col p-1 h-[70%] sm:h-full overflow-hidden">
+        <div class="flex flex-col p-1 h-[60%] sm:h-full overflow-hidden">
           <!-- Search & Filter -->
               <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center">
                 <!-- กล่องรวมช่องค้นหา + หมวดหมู่ + ปุ่มเคลียร์ -->
@@ -381,8 +388,8 @@ function onPrinted(orderId: string) {
                 <img v-if="item.image" :src="item.image" class="rounded-lg aspect-square object-cover" >
                 <div class="mt-2 font-semibold truncate text-sm sm:text-base">{{ item.name }}</div>
                 <div class="flex-1 text-xs sm:text-sm">{{ item.category.name }}</div>
-                <div class="text-gray-500 text-sm sm:text-base">฿{{ item.price ?? 0 }}</div>
-              </UCard>
+                <div class="text-gray-500 text-sm sm:text-base"><span class="font-semibold">฿{{ item.price ?? 0 }}</span> <span class="text-xs text-muted italic">({{ item.cost}})</span></div>
+              </UCard> 
             </div>
           </div>
         </div>

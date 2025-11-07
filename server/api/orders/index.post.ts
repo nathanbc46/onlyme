@@ -5,11 +5,13 @@ const orderSchema = z.object({
     items: z.array(z.object({
         id: z.string(),  // productId
         price: z.coerce.number().nonnegative(),
+        cost: z.coerce.number().nonnegative(),
         qty: z.coerce.number().nonnegative(),
         note: z.string().optional()
     })),
     note: z.string().optional(),
     total: z.coerce.number().nonnegative(),
+    totalCost: z.coerce.number().nonnegative()
 });
 
 export default defineEventHandler(async (event) => {
@@ -39,12 +41,14 @@ export default defineEventHandler(async (event) => {
             customerId: parseResult.data.customerId,
             remark: parseResult.data.note,
             totalAmount: parseResult.data.total,
+            totalCost: parseResult.data.totalCost,
             userId: user.id, // ✅ ใช้แค่ userId
             orderItems: {
                 create: parseResult.data.items.map(item => ({
                     productId: item.id,  // ✅ ชื่อ field ตาม schema
                     quantity: item.qty,  // ✅ ชื่อ field ตาม schema
                     price: item.price,
+                    cost: item.cost,
                     remark: item.note
                 }))
             },

@@ -4,12 +4,14 @@ import type { TableColumn } from '@nuxt/ui'
 // const { start, finish } = useLoadingIndicator()
 // import { useDebounceFn } from '@vueuse/core'
 import { debounce } from 'lodash-es'
-const table = useTemplateRef('table')
+//const table = useTemplateRef('table')
+const UBadge = resolveComponent('UBadge')
 
 interface Order {
   id: string
   orderNumber: string
   totalAmount: number | string
+  totalCost: number | string
   status: string
   createdAt: string
   customer: {
@@ -78,6 +80,8 @@ interface OrderTable {
   id: string
   orderNumber: string
   totalAmount: number | string
+  totalCost: number | string
+  profit: number
   createdAt: string
   customer: string
   orderItems: string
@@ -88,6 +92,8 @@ const dataTable = computed<OrderTable[]>(() => {
     id: order.id,
     orderNumber: order.orderNumber,
     totalAmount: order.totalAmount,
+    totalCost: order.totalCost,
+    profit: Number(order.totalAmount) - Number(order.totalCost),
     createdAt: order.createdAt,
     customer: order.customer.name,
     orderItems: order.orderItems
@@ -122,9 +128,35 @@ const columns: TableColumn<OrderTable>[] = [
     cell: ({ row }) => {
       const totalAmount = Number.parseFloat(row.getValue('totalAmount'))
       const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(totalAmount)
-      return h('div', { class: 'text-right' }, formatted)
+      return h(UBadge, { class: 'text-base',color: 'info', variant: 'subtle' }, () => formatted)
     }
    }, 
+{ accessorKey: 'totalCost', header: 'Total Cost',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
+    cell: ({ row }) => {
+      const totalCost = Number.parseFloat(row.getValue('totalCost'))
+      const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(totalCost)
+      return h(UBadge, { class: 'text-base',color: 'warning', variant: 'subtle' }, () => formatted)
+    }
+   },   
+   { accessorKey: 'profit', header: 'Profit',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
+    cell: ({ row }) => {
+      const profit = Number.parseFloat(row.getValue('profit'))
+      const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(profit)
+      return h(UBadge, { class: 'text-base', color: 'success', variant: 'subtle' }, () => formatted)
+    }
+   },
    { accessorKey: 'orderItems', header: 'Order Items' },
   { accessorKey: 'createdAt', header: 'Created At',
     cell: ({ row }) => {

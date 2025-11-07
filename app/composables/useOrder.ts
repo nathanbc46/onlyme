@@ -4,12 +4,14 @@ interface order {
         id: string;
         name: string;
         price: number;
+        cost: number;
         qty: number;
         note?: string | undefined;
         _uid?: number | undefined;
     }[];
     note: string;
     total: number;
+    totalCost: number;
 }
 
 export function useOrder() {
