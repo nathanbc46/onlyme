@@ -150,7 +150,7 @@ export default defineEventHandler(async () => {
     // ===== 5️⃣ Top 5 สินค้าขายดี =====
     const topProducts = await prisma.orderItem.groupBy({
       by: ['productId'],
-      _sum: { quantity: true, price: true },
+      _sum: { quantity: true, price: true, total: true, totalItemCost: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 5,
     })
@@ -165,7 +165,9 @@ export default defineEventHandler(async () => {
           id: product?.id,
           name: product?.name,
           totalSold: p._sum.quantity || 0,
-          totalRevenue: p._sum.price || 0,
+          totalRevenue: p._sum.total || 0,
+          totalCost: p._sum.totalItemCost || 0,
+          profit: Number(p._sum.total) - Number(p._sum.totalItemCost)
         }
       })
     )

@@ -48,7 +48,9 @@ export default defineEventHandler(async (event) => {
                     productId: item.id,  // ✅ ชื่อ field ตาม schema
                     quantity: item.qty,  // ✅ ชื่อ field ตาม schema
                     price: item.price,
+                    total: item.price * item.qty,
                     cost: item.cost,
+                    totalItemCost: item.cost * item.qty,
                     remark: item.note
                 }))
             },
