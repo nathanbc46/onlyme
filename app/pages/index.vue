@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+
 const { data, pending, error } = useFetch('/api/dashboard/sales')
 
-console.log('data', data.value)
+//console.log('data', data.value)
 const stats = computed(() => {
 
   if (!data.value) return []
@@ -70,9 +72,66 @@ const stats = computed(() => {
   ]
 })
 
+interface TopProducts {
+  id: string;
+  name: string;
+  totalQty: number;
+  totalRevenue: number;
+  totalCost: number;
+  profit: number
+}
+
 const columnVisibility = ref({
-  id: false // ซ่อนคอลัมน์ id
+  id: false, // ซ่อนคอลัมน์ id
+  totalCost: false
 })
+
+const column = ref<TableColumn<TopProducts>[]>([
+  { accessorKey: 'id', header: 'Id' },
+  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'totalQty', header: 'Total Qty',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
+   },
+  { accessorKey: 'totalRevenue', header: 'Total Revenue',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
+    cell: ({ row }) => {
+      const totalAmount = Number.parseFloat(row.getValue('totalRevenue'))
+      const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(totalAmount)
+      return h(UBadge, { class: 'text-sm',color: 'info', variant: 'subtle' }, () => formatted)
+    }
+  },
+  { accessorKey: 'totalCost', header: 'Total Cost',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
+  },
+  { accessorKey: 'profit', header: 'Profit',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right font-mono'
+      }
+    },
+    cell: ({ row }) => {
+      const profit = Number.parseFloat(row.getValue('profit'))
+      const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(profit)
+      return h(UBadge, { class: 'text-sm', color: 'success', variant: 'subtle' }, () => formatted)
+    }
+  }
+])
 </script>
 <template>
   <UDashboardPanel id="index">
@@ -91,14 +150,14 @@ const columnVisibility = ref({
      
       <ClientOnly v-if="!pending && data">
         <HomeStats :stats="stats" :pending="pending" />
-        <UPageGrid class="lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-6">
+        <UPageGrid class="lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-6">
           <LineChart :data="data.chart.last7Days" title="ยอดขาย 7 วันล่าสุด" series-name="ยอดขาย" />
           <UCard>
             <template #header>
               <h3 class="text-lg font-semibold">Top 5 สินค่าขายดี</h3>
             </template>
             <template #default>
-              <UTable v-model:column-visibility="columnVisibility" :data="data.topProducts" />
+              <UTable v-model:column-visibility="columnVisibility" :columns="column" :data="data.topProducts" />
             </template>
           </UCard>
         </UPageGrid>

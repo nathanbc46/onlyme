@@ -26,6 +26,9 @@ const chartOptions: ApexOptions = {
     height: 350,
     toolbar: { show: false },
     background: 'transparent',
+    zoom: {
+      enabled: false,
+    },
   },
   // title: {
   //   text: props.title || 'Total orders',
@@ -58,7 +61,7 @@ const chartOptions: ApexOptions = {
     </template>
       <VueApexCharts
         type="line"
-        height="350"
+        height="300"
         :options="chartOptions"
         :series="series"
       />

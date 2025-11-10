@@ -164,7 +164,7 @@ export default defineEventHandler(async () => {
         return {
           id: product?.id,
           name: product?.name,
-          totalSold: p._sum.quantity || 0,
+          totalQty: p._sum.quantity || 0,
           totalRevenue: p._sum.total || 0,
           totalCost: p._sum.totalItemCost || 0,
           profit: Number(p._sum.total) - Number(p._sum.totalItemCost)
