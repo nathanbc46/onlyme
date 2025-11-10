@@ -263,6 +263,7 @@ const columns: TableColumn<OrderTable>[] = [
       v-if="isPrintModalOpen && selectedOrder" 
       :model-value="isPrintModalOpen" 
       :order="selectedOrder"
+      @edit="isPrintModalOpen = false; navigateTo(`/orders-food?id=${selectedOrder.id}`)"
       @close="isPrintModalOpen = false"/>
 
     </template>

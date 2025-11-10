@@ -16,7 +16,7 @@ watch(() => props.modelValue, v => (show.value = v))
 watch(show, v => emit('update:modelValue', v))
 
 const close = () => { show.value = false; emit('close') }
-const confirmClose = () => { show.value = false; emit('close') }
+const confirmClose = () => { show.value = false; emit('edit') }
 
 const format = (v = 0) => Number(v).toFixed(0)
 
@@ -92,7 +92,7 @@ const printReceipt = () => {
 <template>
   <div>
     <!-- Modal -->
-    <UModal :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" :open="show" size="lg" :close="{ onClick : close }" >
+    <UModal :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" :open="show" size="lg" :close="{ onClick : confirmClose }" >
 
       <template #body>
         <!-- 
@@ -171,6 +171,7 @@ const printReceipt = () => {
             <UButton
               class="flex-1 flex items-center justify-center gap-2"
               color="neutral"
+              variant="outline"
               @click="copyReceipt"
             >
               <UIcon name="i-lucide-copy" /> <span>คัดลอก</span>
@@ -178,6 +179,7 @@ const printReceipt = () => {
             <UButton
               class="flex-1 flex items-center justify-center gap-2"
               color="success"
+              variant="outline"
               @click="printReceipt"
             >
               <UIcon name="i-heroicons-printer" /> <span>ปริ้น</span>
@@ -187,9 +189,9 @@ const printReceipt = () => {
       </template>
 
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <!-- <UButton variant="ghost" @click="close">ปิด</UButton> -->
-          <UButton color="primary" @click="confirmClose"><UIcon name="i-lucide-x" />ปิด</UButton>
+        <div class="flex w-full justify-end gap-2">
+          <UButton variant="ghost" @click="confirmClose"><UIcon name="i-heroicons-pencil-square" />แก้ไขคำสั่งซื้อ</UButton>          
+          <UButton  color="primary" @click="close"><UIcon name="i-heroicons-x-mark" /> ปิดและกลับไปขายต่อ</UButton>
         </div>
       </template>
     </UModal>

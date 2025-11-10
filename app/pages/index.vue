@@ -4,7 +4,7 @@ import type { TableColumn } from '@nuxt/ui'
 const { data, pending, error } = useFetch('/api/dashboard/sales')
 
 const UBadge = resolveComponent('UBadge')
-console.log('data', data.value?.chart.last7DaysOrders)
+//console.log('data', data.value?.chart.last7DaysOrders)
 const stats = computed(() => {
 
   if (!data.value) return []

@@ -4,12 +4,15 @@ import type { SelectMenuItem } from '@nuxt/ui'
 
 const { getProducts } = useProduct()
 const { createCustomer } = useCustomer()
-const { createOrder } = useOrder()
+const { createOrder, updateOrder, getOrder } = useOrder()
 const { start, finish } = useLoadingIndicator()
 
 const { getSalesToday } = useDashboard()
 
+const route = useRoute()
 const toast = useToast()
+const showReceipt = ref(false)
+const currentOrder = ref<Order>()
 
 // --- ลูกค้า ---
 // const selectedCustomerId = ref<string | null>(null)
@@ -18,6 +21,26 @@ const addingNewCustomer = ref(false)
 const newCustomerName = ref('')
 const selectedCustomer = ref<{ id: string; name: string; description: string } | null | undefined>(null)
 const { data: customers, refresh } = await useFetch<{ id: string; name: string; description: string }[]>('/api/customers')
+
+const orderId = computed(() => route.query.id)
+
+
+console.log('orderId', orderId.value)
+// if(orderId.value) {
+//   const orderSelected = await getOrder(orderId.value)
+
+//   console.log('orderSelected', orderSelected)
+  
+//   currentOrder.value = orderSelected   
+//   // orderSelected.orderItems.forEach(item => {
+//   //   addToCart({
+//   //     id: item.productId,
+//   //     name: item.product.name,
+//   //     price: item.product.price,
+//   //     qty: item.quantity,
+//   //   })
+//   // })
+// }
 
 
 // --- ยอดขายวันนี้ ---
@@ -195,6 +218,28 @@ const totalCost = computed(() =>
   cart.value.reduce((sum, i) => sum + (i.cost || 0) * (i.qty || 0), 0)
 )
 
+interface Order {
+  id?: string
+  orderNumber: string
+  totalAmount: number | string
+  totalCost: number | string | null
+  status: string
+  customer: {
+    id: string
+    name: string
+  }
+  orderItems: {
+    id: string
+    quantity: number | string
+    price: number | string
+    product: {
+      id: string
+      name: string
+    }
+  }[]
+}
+
+
 const loadingSubmit = ref(false)
 async function submitOrder() {
   if (cart.value.length === 0) {
@@ -224,28 +269,52 @@ async function submitOrder() {
 
   try {
     loadingSubmit.value = true
-    const res = await createOrder(order)
-    console.log(res.orderNumber)
-    toast.add({
-      title: 'Success',
-      description: 'สั่งอาหารเรียบร้อยแล้ว! เลขที่คําสั่งซื้อ: ' + res.orderNumber + ' ยอดรวม: ' + (totalPrice.value ? ' ฿' + totalPrice.value.toFixed(2) : ''),
-      icon: 'i-heroicons-check-circle',
-      color: 'success'
-    })
 
-    salesTodayRef.value = (Number(salesTodayRef?.value ?? 0) + Number(totalPrice.value))
+    //Create Order
+    if(!currentOrder.value) {
+      const res = await createOrder(order)
+      // console.log(res.orderNumber)
+      toast.add({
+        title: 'Success',
+        description: 'สั่งอาหารเรียบร้อยแล้ว! เลขที่คําสั่งซื้อ: ' + res.orderNumber + ' ยอดรวม: ' + (totalPrice.value ? ' ฿' + totalPrice.value.toFixed(2) : ''),
+        icon: 'i-heroicons-check-circle',
+        color: 'success'
+      })
 
-    if (!res || !res.id) {
-      throw new Error('Invalid order response from server')
-    }
+      salesTodayRef.value = (Number(salesTodayRef?.value ?? 0) + Number(totalPrice.value))
 
-    if (res && res.id) {
-      cart.value = []
+      if (!res || !res.id) {
+        throw new Error('Invalid order response from server')
+      }      
+
+      if (res && res.id) {
+      /* cart.value = []
       orderNote.value = ''
-      selectedCustomerId.value = ''
-
+      selectedCustomerId.value = '' */
       currentOrder.value = res
       showReceipt.value = true
+    }
+
+    }else{ //Update Order
+      if(currentOrder.value.id){
+        const res_update = await updateOrder(currentOrder.value.id, order)
+
+        // console.log(res_update)
+
+      if (!res_update || !res_update.id) {
+        throw new Error('Invalid order response from server')
+      }   
+
+      toast.add({
+        title: 'Success',
+        description: 'แก้ไขคําสั่งซื้อ ' + res_update.orderNumber + ' เรียบร้อยแล้ว!',
+        icon: 'i-heroicons-check-circle',
+        color: 'success'
+      })
+        currentOrder.value = res_update        
+        showReceipt.value = true
+      }
+
     }
 
   } catch (error) {
@@ -260,31 +329,15 @@ async function submitOrder() {
 
 }
 
+function clearCartAndOrder() {
+  cart.value = []
+  orderNote.value = ''
+  currentOrder.value = undefined
+  selectedCustomerId.value = ''
+}
 
 
 // --- ใบเสร็จ ---
-interface Order {
-  id: string
-  orderNumber: string
-  totalAmount: number | string
-  totalCost: number | string | null
-  status: string
-  customer: {
-    id: string
-    name: string
-  }
-  orderItems: {
-    id: string
-    quantity: number | string
-    price: number | string
-    product: {
-      id: string
-      name: string
-    }
-  }[]
-}
-const showReceipt = ref(false)
-const currentOrder = ref<Order>()
 
 // async function confirmOrder() {
 //   // 1) create order on server
@@ -294,13 +347,13 @@ const currentOrder = ref<Order>()
 //   showReceipt.value = true
 // }
 
-function handleEdit(order: Order) {
-  console.log('handleEdit',order)
-  return
-  // Option A: navigate to edit page
-  // navigateTo(`/orders/${order.id}/edit`)
-  // Option B: open inline edit modal in same page
-}
+// function handleEdit(order: Order) {
+//   console.log('handleEdit',order)
+//   return
+//   // Option A: navigate to edit page
+//   // navigateTo(`/orders/${order.id}/edit`)
+//   // Option B: open inline edit modal in same page
+// }
 
 function onPrinted(orderId: string) {
   console.log('onPrinted', orderId)
@@ -486,6 +539,7 @@ function onPrinted(orderId: string) {
             <!-- รายการสินค้าในตะกร้า -->
             <div ref="cartWrapper" class="flex-1 overflow-y-auto space-y-4 min-h-0">
               <transition-group name="cart" tag="div">
+                <UAlert v-if="currentOrder?.id" color="warning" icon="i-lucide-info" class="p-2 mb-2" variant="subtle" :title="`คุณกำลังแก้ไขคำสั่งซื้อ #${currentOrder.orderNumber}` " />
                 <div v-if="cart.length === 0" key="empty" class="text-center text-gray-500 italic mt-10">
                   ตะกร้าว่างเปล่า<br>กรุณาเลือกสินค้าเพื่อเพิ่มลงในตะกร้า
                 </div>
@@ -552,20 +606,25 @@ function onPrinted(orderId: string) {
             </div>
 
             <div class="w-full flex gap-4">
-              <UButton class="flex-1" color="neutral" block @click="cart = []; orderNote = ''">
+              <UButton v-if="!currentOrder?.id" class="flex-1" color="neutral" block @click="cart = []; orderNote = ''">
                 <UIcon name="i-lucide-brush-cleaning" /> ล้างตะกร้า
               </UButton>
+              <UButton v-else class="flex-1" color="neutral" block @click="clearCartAndOrder">
+                <UIcon name="i-lucide-plus" /> คำสั่งซื้อใหม่
+              </UButton>
+
               <UButton 
                 :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-2"
                 :loading="loadingSubmit"
                 color="success" block @click="submitOrder">
-                <UIcon name="i-heroicons-check-circle" /> ยืนยันคำสั่งซื้อ
+                <span v-if="!currentOrder?.id"><UIcon name="i-heroicons-check-circle" /> ยืนยันคำสั่งซื้อ</span>
+                <span v-else ><UIcon name="i-lucide-save" /> แก้ไขคำสั่งซื้อ [{{ currentOrder.orderNumber }}]</span>
               </UButton>
 
               <OrderReceiptModal 
                 v-if="showReceipt && currentOrder" :model-value="showReceipt" :order="currentOrder"
-                @close="showReceipt = false"
-                @edit="handleEdit" 
+                @edit="showReceipt = false"
+                @close="clearCartAndOrder" 
                 @printed="onPrinted" />
 
             </div>
