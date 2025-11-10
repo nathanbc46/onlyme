@@ -3,6 +3,7 @@ import type { TableColumn } from '@nuxt/ui'
 
 const { data, pending, error } = useFetch('/api/dashboard/sales')
 
+const UBadge = resolveComponent('UBadge')
 //console.log('data', data.value)
 const stats = computed(() => {
 
@@ -73,12 +74,19 @@ const stats = computed(() => {
 })
 
 interface TopProducts {
-  id: string;
-  name: string;
-  totalQty: number;
-  totalRevenue: number;
-  totalCost: number;
-  profit: number
+  id?: string;
+  name?: string;
+  totalQty: number | string;
+  totalRevenue: number | string;
+  totalCost: number | string;
+  profit: number | string;
+}
+
+interface TopCustomers {
+  id?: string;
+  name?: string;
+  totalRevenue: number | string;
+  totalOrders: number | string;
 }
 
 const columnVisibility = ref({
@@ -88,20 +96,20 @@ const columnVisibility = ref({
 
 const column = ref<TableColumn<TopProducts>[]>([
   { accessorKey: 'id', header: 'Id' },
-  { accessorKey: 'name', header: 'Name' },
-  { accessorKey: 'totalQty', header: 'Total Qty',
+  { accessorKey: 'name', header: 'สินค้า' },
+  { accessorKey: 'totalQty', header: 'จํานวน',
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
    },
-  { accessorKey: 'totalRevenue', header: 'Total Revenue',
+  { accessorKey: 'totalRevenue', header: 'ยอดขาย',
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {
@@ -114,21 +122,47 @@ const column = ref<TableColumn<TopProducts>[]>([
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
   },
-  { accessorKey: 'profit', header: 'Profit',
+  { accessorKey: 'profit', header: 'กำไร',
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {
       const profit = Number.parseFloat(row.getValue('profit'))
       const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(profit)
       return h(UBadge, { class: 'text-sm', color: 'success', variant: 'subtle' }, () => formatted)
+    }
+  }
+])
+
+const columnCustomers = ref<TableColumn<TopCustomers>[]>([
+  { accessorKey: 'id', header: 'Id' },
+  { accessorKey: 'name', header: 'สินค้า' },
+  { accessorKey: 'totalOrders', header: 'จํานวน',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right'
+      }
+    },
+   },
+  { accessorKey: 'totalRevenue', header: 'ยอดขาย',
+    meta: {
+      class: {
+        th: 'text-right font-semibold',
+        td: 'text-right'
+      }
+    },
+    cell: ({ row }) => {
+      const totalAmount = Number.parseFloat(row.getValue('totalRevenue'))
+      const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(totalAmount)
+      return h(UBadge, { class: 'text-sm',color: 'info', variant: 'subtle' }, () => formatted)
     }
   }
 ])
@@ -154,12 +188,21 @@ const column = ref<TableColumn<TopProducts>[]>([
           <LineChart :data="data.chart.last7Days" title="ยอดขาย 7 วันล่าสุด" series-name="ยอดขาย" />
           <UCard>
             <template #header>
-              <h3 class="text-lg font-semibold">Top 5 สินค่าขายดี</h3>
+              <h3 class="text-lg font-semibold"><UIcon name="i-lucide-box" /> Top 5 สินค่าขายดี</h3>
             </template>
             <template #default>
               <UTable v-model:column-visibility="columnVisibility" :columns="column" :data="data.topProducts" />
             </template>
           </UCard>
+          <UCard>
+            <template #header>
+              <h3 class="text-lg font-semibold"><UIcon name="i-lucide-users" /> Top 5 ลูกค้าประจำ</h3>
+            </template>
+            <template #default>
+              <UTable v-model:column-visibility="columnVisibility" :columns="columnCustomers" :data="data.topCustomers" />
+            </template>
+          </UCard>
+
         </UPageGrid>
       </ClientOnly>
       

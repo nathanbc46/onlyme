@@ -119,7 +119,7 @@ const columns: TableColumn<OrderTable>[] = [
     meta: {
       class: {
         th: 'text-center font-semibold',
-        td: 'text-center font-mono'
+        td: 'text-center'
       }
     },
   },
@@ -142,7 +142,7 @@ const columns: TableColumn<OrderTable>[] = [
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {
@@ -155,7 +155,7 @@ const columns: TableColumn<OrderTable>[] = [
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {
@@ -168,7 +168,7 @@ const columns: TableColumn<OrderTable>[] = [
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {

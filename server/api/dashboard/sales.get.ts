@@ -172,6 +172,30 @@ export default defineEventHandler(async () => {
       })
     )
 
+    // ===== 6️⃣ Top 5 ลูกค้า =====
+    const topCustomers = await prisma.order.groupBy({
+      by: ['customerId'],
+      _sum: { totalAmount: true },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 5,
+    })
+
+    const topCustomerDetails = await Promise.all(
+      topCustomers.map(async (m) => {
+        const customer = await prisma.customer.findUnique({
+          where: { id: m.customerId },
+          select: { id: true, name: true},
+        })
+        return {
+          id: customer?.id,
+          name: customer?.name,
+          totalOrders: m._count.id || 0,
+          totalRevenue: m._sum.totalAmount || 0
+        }
+      })
+    )
+
 
     // ✅ ส่งกลับข้อมูลทั้งหมด
     return {
@@ -202,7 +226,8 @@ export default defineEventHandler(async () => {
       chart: {
         last7Days: last7DaysSales,
       },
-      topProducts: topProductDetails
+      topProducts: topProductDetails,
+      topCustomers: topCustomerDetails
     }
   } catch (error) {
     throw createError({

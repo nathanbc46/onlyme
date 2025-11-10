@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+const UBadge = resolveComponent('UBadge')
 
 interface Members {
   id: string
@@ -47,13 +48,19 @@ const column = ref<TableColumn<Members>[]>([
   { accessorKey: 'id', header: 'Id' },
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'email', header: 'Email' },
-  { accessorKey: 'description', header: 'Description' },
+  { accessorKey: 'description', header: 'Description',
+    meta: {
+      class: {
+        th: 'font-semibold',
+        td: 'text-sm italic'
+      }
+  }},
 
   { accessorKey: 'orderCount', header: 'Order Count',
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {
@@ -66,7 +73,7 @@ const column = ref<TableColumn<Members>[]>([
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {

@@ -16,7 +16,8 @@ const toast = useToast()
 const selectedCustomerId = ref<string>('')
 const addingNewCustomer = ref(false)
 const newCustomerName = ref('')
-const { data: customers, refresh } = await useFetch<{ id: string; name: string }[]>('/api/customers')
+const selectedCustomer = ref<{ id: string; name: string; description: string } | null | undefined>(null)
+const { data: customers, refresh } = await useFetch<{ id: string; name: string; description: string }[]>('/api/customers')
 
 
 // --- ยอดขายวันนี้ ---
@@ -34,6 +35,10 @@ const customerOptions = computed(() =>
 function searchCustomer(q: string) {
   if (!q) return
   customers.value = customers.value?.filter(c => c.name.includes(q))
+}
+
+function selectCustomer(customerId: string) {
+  selectedCustomer.value = customers.value?.find(c => c.id === customerId)
 }
 
 // เพิ่มลูกค้าใหม่
@@ -402,65 +407,80 @@ function onPrinted(orderId: string) {
             </h2>
 
             <!-- ลูกค้า -->
-            <div class="rounded-xl p-2 mb-4 shrink-0 flex flex-col sm:flex-row items-start sm:items-center gap-2 shadow-sm">
+            <div class="rounded-xl p-2 mb-4 shrink-0 shadow-sm dark:shadow-primary/30">
 
-              <!-- กลุ่มซ้าย: label + select + ปุ่มเพิ่ม -->
-              <div class="flex flex-row flex-wrap items-center gap-2 w-full">
-                <!-- Label -->
-                <label class="hidden sm:inline-flex sm:w-auto items-center gap-2 whitespace-nowrap">
-                  <UIcon name="i-heroicons-user" /> ลูกค้า
-                </label>
+              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 ">
+                <!-- กลุ่มซ้าย: label + select + ปุ่มเพิ่ม -->
+                <div class="flex flex-row flex-wrap items-center gap-2 w-full">
+                  <!-- Label -->
+                  <label class="hidden sm:inline-flex sm:w-auto items-center gap-2 whitespace-nowrap">
+                    <UIcon name="i-heroicons-user" /> ลูกค้า
+                  </label>
 
-                <!-- Select ลูกค้า -->
-                <USelectMenu 
-                  v-model="selectedCustomerId"
-                  :items="customerOptions"
-                  value-key="value"
-                  placeholder="เลือกลูกค้า"
-                  searchable
-                  :searchable-placeholder="'พิมพ์เพื่อค้นหา'"
-                  class="flex-1 min-w-[140px] sm:w-1/3"
-                  @search="searchCustomer"
-                />
-
-                <!-- ปุ่มเพิ่มลูกค้าใหม่ -->
-                <UButton
-                  v-if="!addingNewCustomer"
-                  variant="link"
-                  class="whitespace-nowrap"
-                  @click="addingNewCustomer = !addingNewCustomer"
-                >
-                  {{ addingNewCustomer ? 'ยกเลิก' : '+ เพิ่มลูกค้าใหม่' }}
-                </UButton>
-              </div>
-
-              <!-- ฟอร์มเพิ่มลูกค้าใหม่ -->
-              <div v-if="addingNewCustomer" class="w-full">
-                <UForm class="flex flex-col sm:flex-row gap-2 items-center w-full" @submit="addCustomer">
-                  <UInput 
-                    v-model="newCustomerName"
-                    autofocus
-                    placeholder="ชื่อลูกค้าใหม่"
-                    class="flex-1 w-full sm:w-auto"
+                  <!-- Select ลูกค้า -->
+                  <USelectMenu 
+                    v-model="selectedCustomerId"
+                    :items="customerOptions"
+                    value-key="value"
+                    placeholder="เลือกลูกค้า"
+                    searchable
+                    :searchable-placeholder="'พิมพ์เพื่อค้นหา'"
+                    class="flex-1 min-w-[140px] sm:w-1/3"
+                    @search="searchCustomer"
+                    @change="selectCustomer(selectedCustomerId)"
                   />
+
+                  <!-- ปุ่มเพิ่มลูกค้าใหม่ -->
                   <UButton
-                    type="submit"
-                    :loading="loadingAddCustomer"
-                    color="primary"
-                    class="w-full sm:w-auto"
-                  >
-                    บันทึก
-                  </UButton>
-                  <UButton
+                    v-if="!addingNewCustomer"
                     variant="link"
-                    class="w-full sm:w-auto"
-                    @click="addingNewCustomer = false"
+                    class="whitespace-nowrap"
+                    @click="addingNewCustomer = !addingNewCustomer"
                   >
-                    ยกเลิก
+                    {{ addingNewCustomer ? 'ยกเลิก' : '+ เพิ่มลูกค้าใหม่' }}
                   </UButton>
-                </UForm>
+                </div>
+
+                <!-- ฟอร์มเพิ่มลูกค้าใหม่ -->
+                <div v-if="addingNewCustomer" class="w-full">
+                  <UForm class="flex flex-col sm:flex-row gap-2 items-center w-full" @submit="addCustomer">
+                    <UInput 
+                      v-model="newCustomerName"
+                      autofocus
+                      placeholder="ชื่อลูกค้าใหม่"
+                      class="flex-1 w-full sm:w-auto"
+                    />
+                    <UButton
+                      type="submit"
+                      :loading="loadingAddCustomer"
+                      color="primary"
+                      class="w-full sm:w-auto"
+                    >
+                      บันทึก
+                    </UButton>
+                    <UButton
+                      variant="link"
+                      class="w-full sm:w-auto"
+                      @click="addingNewCustomer = false"
+                    >
+                      ยกเลิก
+                    </UButton>
+                  </UForm>
+                </div>
               </div>
+            
+              <UAlert
+                v-if="selectedCustomer?.description" 
+                color="info"
+                variant="subtle"
+                :description="selectedCustomer.description"
+                icon="i-lucide-info"
+                class="mt-2 p-2"
+              />
+              
             </div>
+
+
 
 
             <!-- รายการสินค้าในตะกร้า -->
