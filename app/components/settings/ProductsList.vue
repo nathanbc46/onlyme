@@ -230,7 +230,7 @@ const columns: TableColumn<ProductsTable>[] = [
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {
@@ -247,7 +247,7 @@ const columns: TableColumn<ProductsTable>[] = [
     meta: {
       class: {
         th: 'text-right font-semibold',
-        td: 'text-right font-mono'
+        td: 'text-right'
       }
     },
     cell: ({ row }) => {

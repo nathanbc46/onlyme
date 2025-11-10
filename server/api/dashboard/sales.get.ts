@@ -119,7 +119,7 @@ export default defineEventHandler(async () => {
     const start7DaysAgo = now.subtract(6, 'day').startOf('day').toDate()
     const end7Days = now.endOf('day').toDate()
 
-    const last7DaysOrders = await prisma.order.findMany({
+   /*  const last7DaysOrders = await prisma.order.findMany({
       where: {
         status: 'CLOSED',
         createdAt: { gte: start7DaysAgo, lte: end7Days },
@@ -145,7 +145,19 @@ export default defineEventHandler(async () => {
     const last7DaysSales = Array.from(dailySalesMap.entries()).map(([date, total]) => ({
       date,
       total,
-    }))
+    })) */
+
+    const last7Days = await prisma.$queryRawUnsafe(`
+      SELECT 
+        TO_CHAR(DATE("createdAt"), 'YYYY-MM-DD') AS "date",
+        SUM("totalAmount") AS "TotalSales",
+        SUM("totalAmount" - COALESCE("totalCost", 0)) AS "Profit"
+      FROM "order"
+      WHERE "status" = 'CLOSED'
+        AND "createdAt" BETWEEN '${start7DaysAgo.toISOString()}' AND '${end7Days.toISOString()}'
+      GROUP BY DATE("createdAt")
+      ORDER BY DATE("createdAt")
+    `)
 
     // ===== 5️⃣ Top 5 สินค้าขายดี =====
     const topProducts = await prisma.orderItem.groupBy({
@@ -224,7 +236,8 @@ export default defineEventHandler(async () => {
         yearCost: thisYearCostVal
       },
       chart: {
-        last7Days: last7DaysSales,
+        // last7Days: last7DaysSales,
+        last7DaysOrders: last7Days
       },
       topProducts: topProductDetails,
       topCustomers: topCustomerDetails
