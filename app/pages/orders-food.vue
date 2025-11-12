@@ -524,7 +524,7 @@ function clearCartAndOrder() {
               </div>
             </div>
 
-            <div class="flex flex-wrap gap-2 mb-4">
+            <div class="hidden sm:flex flex-wrap gap-2 mb-4">
               <UButton 
                 v-for="cat in categoriesData"
                   :key="cat.id"
