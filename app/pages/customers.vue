@@ -23,7 +23,7 @@ const loadData = async () => {
     const data = await $fetch('/api/customers/list')
     members.value = data.data || []
 
-    console.log('members', members.value)
+    // console.log('members', members.value)
 
     //console.log('meta',meta.value)
     // console.log('Orders',orders.value)

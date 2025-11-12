@@ -22,25 +22,6 @@ const newCustomerName = ref('')
 const selectedCustomer = ref<{ id: string; name: string; description: string } | null | undefined>(null)
 const { data: customers, refresh } = await useFetch<{ id: string; name: string; description: string }[]>('/api/customers')
 
-// const orderId = computed(() => route.query.id)
-// console.log('orderId', orderId.value)
-// if(orderId.value) {
-//   const orderSelected = await getOrder(orderId.value)
-
-//   console.log('orderSelected', orderSelected)
-  
-//   currentOrder.value = orderSelected   
-//   // orderSelected.orderItems.forEach(item => {
-//   //   addToCart({
-//   //     id: item.productId,
-//   //     name: item.product.name,
-//   //     price: item.product.price,
-//   //     qty: item.quantity,
-//   //   })
-//   // })
-// }
-
-
 // --- ยอดขายวันนี้ ---
 const salesToday = await getSalesToday()
 //console.log('salesToday', salesToday)
@@ -253,7 +234,7 @@ function confirmOrder() {
   showReceipt.value = true
 
   orderCart.value = {
-    orderNumber: '[ORDER NUMBER]',
+    orderNumber: '[ORDER NUMBER-->รอยืนยัน]',
     totalAmount: totalPrice.value,
     totalCost: totalCost.value,
     status: '',
@@ -577,7 +558,7 @@ function clearCartAndOrder() {
 
         <!-- 🧺 ตะกร้าสั่งซื้อ -->
         <div class="flex flex-col h-full overflow-hidden">
-          <div class="flex-1 flex flex-col p-2 sm:p-4 overflow-y-auto min-h-0">
+          <div class="flex-1 flex flex-col sm:pl-4 overflow-y-auto min-h-0">
 
            <div class="hidden sm:grid grid-cols-[40%_60%] items-center gap-3">
               <h2 class="hidden sm:inline-flex sm:w-auto text-lg font-bold mb-3 items-center gap-2">
