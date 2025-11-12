@@ -203,6 +203,7 @@ interface Order {
   totalAmount: number | string
   totalCost: number | string | null
   status: string
+  remark?: string | null
   customer: {
     id: string
     name: string
@@ -211,6 +212,7 @@ interface Order {
     id: string
     quantity: number | string
     price: number | string
+    remark?: string | null
     product: {
       id: string
       name: string
@@ -238,6 +240,7 @@ function confirmOrder() {
     totalAmount: totalPrice.value,
     totalCost: totalCost.value,
     status: '',
+    remark: orderNote.value,
     customer: {
       id: selectedCustomerId.value || '',
       name: selectedCustomer.value?.name || ''
@@ -246,6 +249,7 @@ function confirmOrder() {
       id: item.id,
       quantity: item.qty,
       price: item.price,
+      remark: item.note,
       product: {
         id: item.id,
         name: item.name
@@ -266,6 +270,7 @@ function lastOrderPrint() {
       totalAmount: currentOrder.value.totalAmount,
       totalCost: currentOrder.value.totalCost,
       status: '',
+      remark: currentOrder.value.remark,
       customer: {
         id: currentOrder.value.customer.id || '',
         name: currentOrder.value.customer.name || ''
@@ -274,6 +279,7 @@ function lastOrderPrint() {
         id: item.id,
         quantity: item.quantity,
         price: item.price,
+        remark: item.remark,
         product: {
           id: item.product.id,
           name: item.product.name
