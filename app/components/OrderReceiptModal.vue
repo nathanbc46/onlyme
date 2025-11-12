@@ -6,17 +6,18 @@ const toast = useToast()
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
   order: { type: Object, required: true },
-  showQr: { type: Boolean, default: true }
+  showQr: { type: Boolean, default: true },
+  loadingSubmit: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['update:modelValue', 'edit', 'close', 'printed'])
+const emit = defineEmits(['update:modelValue', 'edit', 'close', 'printed', 'confirm'])
 const show = ref(props.modelValue)
 
 watch(() => props.modelValue, v => (show.value = v))
 watch(show, v => emit('update:modelValue', v))
 
 const close = () => { show.value = false; emit('close') }
-const confirmClose = () => { show.value = false; emit('edit') }
+const confirmClose = () => { printReceipt(true); emit('confirm') }
 
 const format = (v = 0) => Number(v).toFixed(0)
 
@@ -26,7 +27,7 @@ const format = (v = 0) => Number(v).toFixed(0)
 const total = computed(() => Math.max(0, subtotal.value - (props.order.discount || 0) + (props.order.tax || 0))) */
 
 const formattedDate = computed(() => {
-  const d = props.order.createdAt ? formatDateTime(props.order.createdAt) : new Date()
+  const d = props.order.createdAt ? formatDateTime(props.order.createdAt) : formatDateTime(new Date())
   return d
 })
 
@@ -70,18 +71,27 @@ const copyReceipt = async () => {
   }
 }
 
-const printReceipt = () => {
+const printReceipt = (closemodal = false) => {
   const printableArea = document.getElementById('printable-area')
   if (!printableArea) return
 
   // ให้แน่ใจว่าพื้นที่นี้มองเห็นก่อนสั่ง print
   printableArea.classList.add('print-visible')
 
+    // ตั้ง event handler สำหรับหลังจาก print เสร็จ
+  const handleAfterPrint = () => {
+    printableArea.classList.remove('print-visible')
+    window.removeEventListener('afterprint', handleAfterPrint)
+    if (closemodal) emit('close')
+  }
+
+  window.addEventListener('afterprint', handleAfterPrint)
+
   // ใช้เวลา delay นิดหน่อยให้ DOM วาดเสร็จ
   setTimeout(() => {
     window.print()
     printableArea.classList.remove('print-visible')
-    emit('printed', props.order.id)
+    //emit('printed', props.order.id)
   }, 200)
 }
 
@@ -92,7 +102,7 @@ const printReceipt = () => {
 <template>
   <div>
     <!-- Modal -->
-    <UModal :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" :open="show" size="lg" :close="{ onClick : confirmClose }" >
+    <UModal :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" :open="show" size="lg" :close="{ onClick : close }" >
 
       <template #body>
         <!-- 
@@ -180,7 +190,7 @@ const printReceipt = () => {
               class="flex-1 flex items-center justify-center gap-2"
               color="success"
               variant="outline"
-              @click="printReceipt"
+              @click="printReceipt()"
             >
               <UIcon name="i-heroicons-printer" /> <span>ปริ้น</span>
             </UButton>
@@ -189,10 +199,14 @@ const printReceipt = () => {
       </template>
 
       <template #footer>
-        <div class="flex w-full justify-end gap-2">
-          <UButton variant="ghost" @click="confirmClose"><UIcon name="i-heroicons-pencil-square" />แก้ไขคำสั่งซื้อ</UButton>          
-          <UButton  color="primary" @click="close"><UIcon name="i-heroicons-x-mark" /> ปิดและกลับไปขายต่อ</UButton>
+        <div v-if="!order.id" class="flex w-full justify-end gap-2">
+          <UButton variant="ghost" @click="close"><UIcon name="i-heroicons-pencil-square" />กลับไปแก้ไข</UButton>          
+          <UButton :loading="loadingSubmit" color="primary" @click="confirmClose"><UIcon name="i-heroicons-check-circle" /> ยืนยันคำสั่งซื้อและปริ้น ?</UButton>
         </div>
+        <div v-else class="flex w-full justify-end gap-2">
+          <UButton variant="ghost" @click="close"><UIcon name="i-lucide-x" />ปิด</UButton> 
+        </div>
+
       </template>
     </UModal>
 
