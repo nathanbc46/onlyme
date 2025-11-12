@@ -524,6 +524,36 @@ function clearCartAndOrder() {
                 </div>
               </div>
 
+            <div class="flex flex-wrap gap-2 mb-4">
+              <UButton 
+                v-for="cat in categoriesData"
+                  :key="cat.id"
+                  color="neutral"
+                    :icon="
+                    cat.name === 'ยำแซ่บซี๊ด'
+                      ? 'i-heroicons-fire'
+                      : cat.name === 'ตำตำ'
+                        ? 'mdi:chili-mild'
+                      : cat.name === 'ข้าวไข่เจียว'
+                        ? 'i-lucide-egg'
+                      : cat.name === 'ข้าวผัด'
+                        ? 'mdi:rice'      
+                       : cat.name === 'ต้มแซ่บ'
+                        ? 'mdi:pot-steam-outline'     
+                       : cat.name === 'ข้าวไก่กรอบ'
+                        ? 'mdi:food-drumstick-outline'           
+                        : cat.name === 'สปาเก็ตตี้'
+                        ? 'mdi:pasta'                                                                                
+                      : 'mdi:bowl-mix-outline'
+                  "
+                  :variant="category === cat.name ? 'solid' : 'outline'"
+                @click="category = cat.name"
+
+              >
+                {{ cat.name }}
+              </UButton>
+            </div>
+
 
           <!-- Menu Cards -->
           <div
