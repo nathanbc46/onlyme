@@ -467,7 +467,7 @@ function clearCartAndOrder() {
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          ยอดขายวันนี้ :  <UBadge color="success" variant="subtle" size="lg" class="font-semibold">฿{{ salesTodayRef ?? 0 }}</UBadge>
+         <UIcon name="i-lucide-trending-up" class="text-2xl" /> ยอดขายวันนี้ :  <UBadge color="success" variant="subtle" size="lg" class="font-semibold">฿{{ Number(salesTodayRef)?.toLocaleString()  ?? 0 }}</UBadge>
         </template>
       </UDashboardNavbar>
     </template>
@@ -479,50 +479,50 @@ function clearCartAndOrder() {
         <!-- 🍛 เมนูอาหาร -->
         <div class="flex flex-col p-1 h-[60%] sm:h-full overflow-hidden">
           <!-- Search & Filter -->
-              <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center">
-                <!-- กล่องรวมช่องค้นหา + หมวดหมู่ + ปุ่มเคลียร์ -->
-                <div class="flex flex-row gap-2 w-full">
-                  <!-- ช่องค้นหา -->
-                  <UInput 
-                    v-model="search"
-                    icon="i-heroicons-magnifying-glass"
-                    placeholder="ค้นหาอาหาร..."
-                    autofocus
-                    class="flex-1"
-                    :ui="{ trailing: 'pe-1' }"
-                  >
-                    <template v-if="search?.length" #trailing>
-                      <UButton 
-                        color="neutral"
-                        variant="link"
-                        size="sm"
-                        icon="i-lucide-circle-x"
-                        aria-label="Clear input"
-                        @click="search = ''"
-                      />
-                    </template>
-                  </UInput>
+            <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center">
+              <!-- กล่องรวมช่องค้นหา + หมวดหมู่ + ปุ่มเคลียร์ -->
+              <div class="flex flex-row gap-2 w-full">
+                <!-- ช่องค้นหา -->
+                <UInput 
+                  v-model="search"
+                  icon="i-heroicons-magnifying-glass"
+                  placeholder="ค้นหาอาหาร..."
+                  autofocus
+                  class="flex-1"
+                  :ui="{ trailing: 'pe-1' }"
+                >
+                  <template v-if="search?.length" #trailing>
+                    <UButton 
+                      color="neutral"
+                      variant="link"
+                      size="sm"
+                      icon="i-lucide-circle-x"
+                      aria-label="Clear input"
+                      @click="search = ''"
+                    />
+                  </template>
+                </UInput>
 
-                  <!-- ช่องเลือกหมวดหมู่ -->
-                  <USelectMenu
-                    v-model="category"
-                    value-key="value"
-                    :items="categories"
-                    class="w-32 sm:w-48"
-                  />
+                <!-- ช่องเลือกหมวดหมู่ -->
+                <USelectMenu
+                  v-model="category"
+                  value-key="value"
+                  :items="categories"
+                  class="w-32 sm:w-48"
+                />
 
-                  <!-- ปุ่มเคลียร์ -->
-                  <UButton 
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-heroicons-arrow-path"
-                    label="เคลียร์"
-                    class="hidden sm:inline-flex sm:w-auto"
-                    @click="search = ''; category = 'all'"
-                  />
-                </div>
+                <!-- ปุ่มเคลียร์ -->
+                <UButton 
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-heroicons-arrow-path"
+                  label="เคลียร์"
+                  class="hidden sm:inline-flex sm:w-auto"
+                  @click="search = ''; category = 'all'"
+                />
               </div>
+            </div>
 
             <div class="flex flex-wrap gap-2 mb-4">
               <UButton 
@@ -618,7 +618,12 @@ function clearCartAndOrder() {
                     class="whitespace-nowrap"
                     @click="addingNewCustomer = !addingNewCustomer"
                   >
-                    {{ addingNewCustomer ? 'ยกเลิก' : '+ เพิ่มลูกค้าใหม่' }}
+                    <template v-if="addingNewCustomer">
+                      ยกเลิก
+                    </template>
+                    <template v-else>
+                      <UIcon name="i-heroicons-plus" />เพิ่มลูกค้าใหม่
+                    </template>
                   </UButton>
                 </div>
 
@@ -743,7 +748,7 @@ function clearCartAndOrder() {
                 :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-2"
                 :loading="loadingSubmit"
                 color="success" block @click="confirmOrder">
-                <span><UIcon name="i-heroicons-check-circle" /> สรุปคำสั่งซื้อ</span>
+                <span><UIcon name="i-lucide-list-check" /> สรุปคำสั่งซื้อ</span>
               </UButton>
 
               <OrderReceiptModal 

@@ -201,7 +201,7 @@ const printReceipt = (closemodal = false) => {
       <template #footer>
         <div v-if="!order.id" class="flex w-full justify-end gap-2">
           <UButton variant="ghost" @click="close"><UIcon name="i-heroicons-pencil-square" />กลับไปแก้ไข</UButton>          
-          <UButton :loading="loadingSubmit" color="primary" @click="confirmClose"><UIcon name="i-heroicons-check-circle" /> ยืนยันคำสั่งซื้อและปริ้น ?</UButton>
+          <UButton :loading="loadingSubmit" color="primary" @click="confirmClose">ยืนยันคำสั่งซื้อและปริ้น ?</UButton>
         </div>
         <div v-else class="flex w-full justify-end gap-2">
           <UButton variant="ghost" @click="close"><UIcon name="i-lucide-x" />ปิด</UButton> 
