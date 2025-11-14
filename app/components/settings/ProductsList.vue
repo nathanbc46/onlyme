@@ -3,6 +3,11 @@ import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import type { Row, Column } from '@tanstack/vue-table'
 import { upperFirst } from 'scule'
+import pica from 'pica'
+
+const { $supabase } = useNuxtApp() 
+const file = ref<File | null>(null)
+const fileUrl = ref<string | null>(null)
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
@@ -16,6 +21,7 @@ const table = useTemplateRef('table')
 const columnVisibility = ref({
   id: false // ซ่อนคอลัมน์ id
 })
+
 
 interface Products {
   id: string
@@ -99,13 +105,90 @@ async function onDeleteProduct(id: string) {
   }
 }
 
+function extractPathFromUrl(url: string) {
+  const parts = url.split('/onlyme-uploads/')[1]
+  return parts // เช่น "public/myphoto.png"
+}
+
+async function resizeImage(imageFile: File) {
+  const img = new Image()
+  img.src = URL.createObjectURL(imageFile)
+  await img.decode()
+
+  const canvas = document.createElement('canvas')
+  canvas.width = 300
+  canvas.height = 300
+
+  const picaInstance = pica()
+
+  await picaInstance.resize(img, canvas, {
+    // unsharpAmount: 80,
+    // unsharpRadius: 0.6,
+    // unsharpThreshold: 2
+  })
+
+  const blob = await picaInstance.toBlob(canvas, imageFile.type, 0.9)
+
+  return new File([blob], imageFile.name, { type: imageFile.type })
+}
+
+const uploadFile = async () => {
+  if (!file.value) return alert('กรุณาเลือกไฟล์')
+
+  try {
+      const { data, error } = await $supabase.storage
+        .from('onlyme-uploads') // ชื่อ bucket
+        .upload(`public/${file.value.name}`, file.value)
+
+      console.log(data, error)
+
+      if (error){
+        console.error(error)
+        throw new Error(error.message)
+      } 
+
+      const { data: publicUrl } = $supabase.storage.from('onlyme-uploads').getPublicUrl(`public/${file.value.name}`)
+      fileUrl.value = publicUrl.publicUrl
+    }  catch (error) {
+    console.error(error)
+    toast.add({
+      title: 'Error',
+      description: (error as Error).message || 'Failed to upload image',
+      color: 'error'
+    })
+  }
+}
+
+
+const deleteImage = async (path: string) => {
+  try {
+  const { data, error } = await $supabase.storage
+    .from('onlyme-uploads') // ชื่อ bucket
+    .remove([path])  // ต้องเป็น array
+
+  if (error) {
+    console.error(error)
+    throw new Error(`Cannot delete image at path '${path}'. Error: ${error?.message || 'Unknown error'}`)
+  }
+  console.log('ลบสำเร็จ', data)    
+  } catch (error) {
+    console.error(error)
+    toast.add({
+      title: 'Error',
+      description: (error as Error).message || 'Failed to delete image',
+      color: 'error'
+    })
+  }
+
+}
+
 const updatedRowId = ref<string | null>(null)
 async function onUpdateProduct(oldImage: string | null | undefined, id: string | undefined, formData: ProductForm, imageFile?: File) {
-  //console.log('onUpdateProduct', id, formData, imageFile, oldImage)
+  //console.log('onUpdateProduct', id, formData, imageFile, oldImage) 
 
   if (!id) return
 
-  let imageUrl: string | undefined
+  let imageUrl: string | null = ''
 
   if (imageFile) {
     try {
@@ -113,19 +196,40 @@ async function onUpdateProduct(oldImage: string | null | undefined, id: string |
       if (!imageFile.type.startsWith("image/")) {
         throw new Error("Please upload a valid image file(jpg, jpeg, png)")
       }
+
+      // file.value = imageFile
+      const newFile = await resizeImage(imageFile)
+      file.value = newFile
+      // const buffer = await sharp(imageFile).resize({ width: 200, height: 200, fit: sharp.fit.cover }).png().toBuffer()
+      // const newFile = new File([buffer], imageFile.name, { type: imageFile.type })
+      // file.value = newFile
+      await uploadFile()
+
+      imageUrl = fileUrl.value
+
+      //ลบไฟล์เก่า
+      console.log('oldImage',oldImage)
+      if(oldImage){
+        const path = extractPathFromUrl(oldImage)
+        console.log('path',path)
+        if (path) {
+          await deleteImage(path)
+        }
+
+      }
       // 👉 อัพโหลดไฟล์ไปที่ API
-      const formData = new FormData()
+      /* const formData = new FormData()
       formData.append("file", imageFile)
       formData.append("oldImage", oldImage || '' )
 
       const uploadRes = await $fetch<{ url: string }>("/api/products/upload-image", {
         method: "POST",
         body: formData,
-      })
+      }) */
 
       //console.log(uploadRes)
 
-      imageUrl = uploadRes.url // ได้ path เช่น /uploads/xxxx.png
+      //imageUrl = uploadRes.url // ได้ path เช่น /uploads/xxxx.png
       //console.log(imageUrl)
     } catch (error) {
       console.error(error)

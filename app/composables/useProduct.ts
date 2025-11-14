@@ -3,7 +3,7 @@ interface Product {
     name: string
     price: number
     cost: number
-    image?: string
+    image?: string | null
     categoryId: string
 }
 
