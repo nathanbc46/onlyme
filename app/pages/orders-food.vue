@@ -57,6 +57,7 @@ async function addCustomer() {
     await refresh()
 
     selectedCustomerId.value = newCustomerData.id
+    selectCustomer(newCustomerData.id)
     addingNewCustomer.value = false
     newCustomerName.value = ''
   } catch (error) {
@@ -566,11 +567,11 @@ function clearCartAndOrder() {
         <div class="flex flex-col h-full overflow-hidden">
           <div class="flex-1 flex flex-col sm:pl-4 overflow-y-auto min-h-0">
 
-           <div class="hidden sm:grid grid-cols-[40%_60%] items-center gap-3">
+           <div class="hidden sm:grid grid-cols-[30%_65%] items-center gap-3">
               <h2 class="hidden sm:inline-flex sm:w-auto text-lg font-bold mb-3 items-center gap-2">
                 <UIcon name="i-heroicons-shopping-bag" /> ตะกร้าสั่งซื้อ
               </h2>
-
+              <!-- <span v-if="currentOrder?.id" class="text-info p-2 mb-2 cursor-pointer"  @click="lastOrderPrint">คำสั่งซื้อล่าสุด #{{ currentOrder?.orderNumber }} ({{ currentOrder?.customer.name }})</span> -->
               <UAlert v-if="currentOrder?.id" color="info" icon="i-lucide-info" class="p-2 mb-2 cursor-pointer" variant="subtle" :title="`คำสั่งซื้อล่าสุด #${currentOrder.orderNumber} (${currentOrder.customer.name})` " @click="lastOrderPrint" />
 
             </div>
@@ -724,18 +725,16 @@ function clearCartAndOrder() {
             </div>
 
             <div class="w-full flex gap-4">
-              <UButton v-if="!currentOrder?.id" class="flex-1" color="neutral" block @click="cart = []; orderNote = ''">
+              <UButton class="flex-1" color="neutral" block @click="cart = []; orderNote = ''">
                 <UIcon name="i-lucide-brush-cleaning" /> ล้างตะกร้า
-              </UButton>
-              <UButton v-else class="flex-1" color="neutral" block @click="clearCartAndOrder">
-                <UIcon name="i-lucide-plus" /> คำสั่งซื้อใหม่
               </UButton>
 
               <UButton 
                 :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-2"
                 :loading="loadingSubmit"
                 color="success" block @click="confirmOrder">
-                <span><UIcon name="i-lucide-list-check" /> สรุปคำสั่งซื้อ</span>
+                <span v-if="loadingSubmit"><UIcon name="i-lucide-loader" spin /> กําลังสร้าง...</span>
+                <span v-else><UIcon name="i-lucide-list-check" /> สรุปคำสั่งซื้อ</span>
               </UButton>
 
               <OrderReceiptModal 
