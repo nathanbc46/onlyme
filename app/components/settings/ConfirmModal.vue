@@ -14,11 +14,14 @@ function onClick() {
 const open = ref(false) */
 
 const props = defineProps<{
-    loading?: boolean
-    open?: boolean,
-    title: string,
-    description: string
+  loading?: boolean
+  open?: boolean
+  title: string
+  description: string
+  btnText?: string
+  btnColor?: "error" | "info" | "neutral" | "primary" | "secondary" | "success" | "warning"
 }>()
+
 
 const emit = defineEmits(['confirm', 'update:open'])
 
@@ -47,7 +50,7 @@ function closeModal() {
         <template #body>
             <div class="flex justify-end gap-2">
                 <UButton label="Cancel" color="neutral" variant="subtle" @click="closeModal" />
-                <UButton label="Confirm" class="w-fit" color="error" :loading="loading" @click="onClick()" />
+                <UButton :label="btnText ?? `Confirm`" class="w-fit" :color="btnColor ?? `error`" :loading="loading" @click="onClick()" />
             </div>
         </template>
     </UModal>

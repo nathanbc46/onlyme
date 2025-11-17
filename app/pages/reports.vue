@@ -455,6 +455,8 @@ function getRowItems(row: Row<OrderTable>) {
     v-model:open="isCancelModalOpen" mode="delete" :title="`Change order status to ${newOrderStatus}` "
       :description="'Are you sure you want to ' + newOrderStatus + ' this order \'' + selectedOrder?.orderNumber + ' - (' + selectedOrder?.customer.name + ')\' ?'"
       :loading="loadingDelete"
+      :btn-color="newOrderStatus === 'CLOSED' ? 'success' : 'warning'"
+      :btn-text="`Chang to ${newOrderStatus}` "
       @confirm="selectedOrder && onStatusChange(selectedOrder.id,newOrderStatus)" />
 
     </template>
