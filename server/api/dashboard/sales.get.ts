@@ -26,15 +26,15 @@ export default defineEventHandler(async () => {
     const [today, yesterday, todayCost] = await Promise.all([
       prisma.order.aggregate({
         _sum: { totalAmount: true },
-        where: { createdAt: { gte: startToday, lte: endToday } },
+        where: { createdAt: { gte: startToday, lte: endToday }, status: 'CLOSED' },
       }),
       prisma.order.aggregate({
         _sum: { totalAmount: true },
-        where: { createdAt: { gte: startYesterday, lte: endYesterday } },
+        where: { createdAt: { gte: startYesterday, lte: endYesterday }, status: 'CLOSED' },
       }),
       prisma.order.aggregate({
         _sum: { totalCost: true },
-        where: { createdAt: { gte: startToday, lte: endToday } },
+        where: { createdAt: { gte: startToday, lte: endToday }, status: 'CLOSED' },
       }),
     ])
 
@@ -55,15 +55,15 @@ export default defineEventHandler(async () => {
     const [thisMonth, lastMonth, thisMonthCost] = await Promise.all([
       prisma.order.aggregate({
         _sum: { totalAmount: true },
-        where: { createdAt: { gte: startOfMonth.toDate(), lte: endOfCurrentPeriod.toDate() } },
+        where: { createdAt: { gte: startOfMonth.toDate(), lte: endOfCurrentPeriod.toDate() }, status: 'CLOSED' },
       }),
       prisma.order.aggregate({
         _sum: { totalAmount: true },
-        where: { createdAt: { gte: startLastMonth.toDate(), lte: endLastMonthSamePeriod.toDate() } },
+        where: { createdAt: { gte: startLastMonth.toDate(), lte: endLastMonthSamePeriod.toDate() }, status: 'CLOSED' },
       }),
       prisma.order.aggregate({
         _sum: { totalCost: true },
-        where: { createdAt: { gte: startLastMonth.toDate(), lte: endOfCurrentPeriod.toDate() } },
+        where: { createdAt: { gte: startLastMonth.toDate(), lte: endOfCurrentPeriod.toDate() }, status: 'CLOSED' },
       }),
     ])
 

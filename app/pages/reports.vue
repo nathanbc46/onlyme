@@ -1,11 +1,17 @@
 <script lang="ts" setup>
 import type { TableColumn } from '@nuxt/ui'
-// const { getOrders } = useOrder()
+import type { Row } from '@tanstack/vue-table'
+import { debounce } from 'lodash-es'
+const { deleteOrder, updateOrderStatus } = useOrder()
 // const { start, finish } = useLoadingIndicator()
 // import { useDebounceFn } from '@vueuse/core'
-import { debounce } from 'lodash-es'
+
 //const table = useTemplateRef('table')
+const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
+const UDropdownMenu = resolveComponent('UDropdownMenu')
+
+const toast = useToast()
 
 interface Order {
   id: string
@@ -68,7 +74,6 @@ const loadData = async () => {
   }
 }
 
-
 watch(searchTerm, debounce(loadData, 500))
 watch([() => pagination.value.pageIndex, () => pagination.value.pageSize], loadData, { immediate: true })
 
@@ -78,6 +83,10 @@ const columnVisibility = ref({
 
 const isPrintModalOpen = ref(false)
 const selectedOrder = ref<Order | null>(null)
+const loadingDelete = ref(false)
+const isDeleteModalOpen = ref(false)
+const isCancelModalOpen = ref(false)
+const newOrderStatus = ref('')
 
 const openPrintModal = (order: Order) => {
   selectedOrder.value = order
@@ -85,11 +94,81 @@ const openPrintModal = (order: Order) => {
   isPrintModalOpen.value = true
 }
 
+const openDeleteModal = (order: Order) => {
+  selectedOrder.value = order
+  isDeleteModalOpen.value = true
+}
+
+const openCancelModal = (order: Order, status: string) => {
+  newOrderStatus.value = status
+  selectedOrder.value = order
+  isCancelModalOpen.value = true
+}
+
+const closeDeleteModal = () => {
+  isDeleteModalOpen.value = false
+  selectedOrder.value = null
+}
+
+const closeCancelModal = () => {
+  isCancelModalOpen.value = false
+  selectedOrder.value = null
+}
+
+async function onStatusChange(id: string, status: string) {
+  if (!id) return
+  try {
+    loadingDelete.value = true
+    const data = await updateOrderStatus(id, status)
+    toast.add({
+      title: 'Success',
+      description: 'Order ' + data?.orderNumber + ' ' + status + ' successfully',
+      color: 'success'
+    })
+    loadData()
+    closeCancelModal()
+  } catch (error) {
+    console.error(error)
+    toast.add({
+      title: 'Error',
+      description: (error as Error).message || 'Failed to ' + status + ' order',
+      color: 'error'
+    })
+  } finally {
+    loadingDelete.value = false
+  }
+}
+
+async function onDeleteOrder(id: string) {
+  if (!id) return
+  try {
+    loadingDelete.value = true
+    const data = await deleteOrder(id)
+    toast.add({
+      title: 'Success',
+      description: 'Order ' + data?.orderNumber + ' deleted successfully',
+      color: 'success'
+    })
+    loadData()
+    closeDeleteModal()
+  } catch (error) {
+    console.error(error)
+    toast.add({
+      title: 'Error',
+      description: (error as Error).message || 'Failed to delete order',
+      color: 'error'
+    })
+  } finally {
+    loadingDelete.value = false
+  }
+}
+
 interface OrderTable {
   id: string
   orderNumber: string
   totalAmount: number | string
   totalCost: number | string | null
+  status: string
   profit: number
   createdAt: string
   customer: string
@@ -102,6 +181,7 @@ const dataTable = computed<OrderTable[]>(() => {
     orderNumber: order.orderNumber,
     totalAmount: order.totalAmount,
     totalCost: order.totalCost,
+    status: order.status,
     profit: Number(order.totalAmount) - Number(order.totalCost),
     createdAt: order.createdAt,
     customer: order.customer.name,
@@ -135,8 +215,26 @@ const columns: TableColumn<OrderTable>[] = [
       )
     }
    },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    meta: {
+      class: {
+        th: 'text-center font-semibold',
+        td: 'text-center'
+      }
+    },
+    cell: ({ row }) => {
+      const status = row.original.status
+      const isCancelled = status === 'CANCELLED'
 
-
+      return h(
+        'span',
+        { class: isCancelled ? 'text-error font-semibold' : '' },
+        status
+      )
+    }
+  },
   { accessorKey: 'customer', header: 'Customer' },
   { accessorKey: 'totalAmount', header: 'Total Amount',
     meta: {
@@ -185,7 +283,88 @@ const columns: TableColumn<OrderTable>[] = [
       return h('div', { class: 'text-center' }, formatted)
     }
    },
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      return h('div', { class: 'text-right' },
+        h(
+          UDropdownMenu,
+          {
+            content: {
+              align: 'end'
+            },
+            items: getRowItems(row),
+            'aria-label': 'Actions dropdown'
+          },
+          () =>
+            h(UButton, {
+              icon: 'i-lucide-ellipsis-vertical',
+              color: 'neutral',
+              variant: 'ghost',
+              class: 'ml-auto',
+              'aria-label': 'Actions dropdown'
+            })
+        ),
+      )
+    }
+  }
   ]
+
+function getRowItems(row: Row<OrderTable>) {
+  return [
+    {
+      type: 'label',
+      label: 'Actions'
+    },
+    {
+      type: 'separator'
+    },
+    ...(row.getValue('status') !== 'CANCELLED'
+      ? [
+    {
+      label: 'CANCELLED Order',
+      icon: 'i-lucide-circle-x',
+      color: 'warning',
+      onSelect() {
+        openCancelModal(
+          orders.value.find(p => p.id === row.getValue('id'))!,
+          'CANCELLED'
+        )
+      }
+    }
+    ]
+    : []),
+
+    // ⬇⬇⬇ เงื่อนไขไม่ใช่ CLOSED ค่อยแสดงเมนู
+    ...(row.getValue('status') !== 'CLOSED'
+      ? [
+          {
+            label: 'CLOSED Order',
+            icon: 'i-lucide-circle-check',
+            color: 'success',
+            onSelect() {
+              openCancelModal(
+                orders.value.find(p => p.id === row.getValue('id'))!,
+                'CLOSED'
+              )
+            }
+          }
+        ]
+      : []),
+
+    {
+      label: 'Delete Order',
+      icon: 'i-lucide-trash',
+      color: 'error',
+      onSelect() {
+        openDeleteModal(
+          orders.value.find(p => p.id === row.getValue('id'))!
+        )
+      }
+    }
+  ]
+}
+
 </script>
 
 <template>
@@ -265,6 +444,18 @@ const columns: TableColumn<OrderTable>[] = [
       :order="selectedOrder"
       @edit="isPrintModalOpen = false; navigateTo(`/orders-food?id=${selectedOrder.id}`)"
       @close="isPrintModalOpen = false"/>
+
+    <SettingsConfirmModal 
+    v-model:open="isDeleteModalOpen" mode="delete" title="Delete order"
+      :description="'Are you sure you want to delete this order \'' + selectedOrder?.orderNumber + ' - (' + selectedOrder?.customer.name + ')\' ?'"
+      :loading="loadingDelete"
+      @confirm="selectedOrder && onDeleteOrder(selectedOrder.id)" />
+
+    <SettingsConfirmModal 
+    v-model:open="isCancelModalOpen" mode="delete" :title="`Change order status to ${newOrderStatus}` "
+      :description="'Are you sure you want to ' + newOrderStatus + ' this order \'' + selectedOrder?.orderNumber + ' - (' + selectedOrder?.customer.name + ')\' ?'"
+      :loading="loadingDelete"
+      @confirm="selectedOrder && onStatusChange(selectedOrder.id,newOrderStatus)" />
 
     </template>
   </UDashboardPanel>

@@ -87,10 +87,37 @@ export function useOrder() {
         }
     }
 
+    async function deleteOrder(id: string) {
+        try {
+            const order = await $fetch<{data : OrderDetail}>(`/api/orders/${id}`, {
+                method: 'DELETE',
+            })
+            return order.data
+        } catch (error) {
+            console.error('Error deleting order:', error);
+            throw error;
+        }
+    }
+
+    async function updateOrderStatus(id: string, status: string) {
+        try {
+            const order = await $fetch<{data : OrderDetail}>(`/api/orders/status`, {
+                method: 'PATCH',
+                body: { id: id, status }
+            })
+            return order.data
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            throw error;
+        }
+    }
+
     return {
         createOrder,
         getOrders,
         updateOrder,
-        getOrder
+        getOrder,
+        deleteOrder,
+        updateOrderStatus
     }
 }
