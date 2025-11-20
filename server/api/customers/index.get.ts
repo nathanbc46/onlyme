@@ -6,6 +6,26 @@ export default defineEventHandler(async () => {
       }
     });
     return customers;
+    // const customers = await prisma.customer.findMany({
+    //   include: {
+    //     orders: {
+    //       orderBy: { createdAt: 'desc' },
+    //       take: 5,
+    //       include: {
+    //         orderItems: {
+    //           include: {
+    //             product: true, // ดึงชื่อสินค้า ราคา เดิมทั้งหมด
+    //           },
+    //         },
+    //         customer: true, // ถ้าต้องการข้อมูลลูกค้าใน order ซ้ำ (ลบออกได้)
+    //       },
+    //     },
+    //   },
+    // });
+
+
+    // return customers
+
   } catch (error) {
     throw createError({
       statusCode: 400,

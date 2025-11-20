@@ -14,13 +14,24 @@ const toast = useToast()
 const showReceipt = ref(false)
 const currentOrder = ref<Order>()
 
+interface Customer {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  description?: string
+  orders: Order[]
+}
+
 // --- ลูกค้า ---
 // const selectedCustomerId = ref<string | null>(null)
 const selectedCustomerId = ref<string>('')
 const addingNewCustomer = ref(false)
 const newCustomerName = ref('')
-const selectedCustomer = ref<{ id: string; name: string; description: string } | null | undefined>(null)
-const { data: customers, refresh } = await useFetch<{ id: string; name: string; description: string }[]>('/api/customers')
+const selectedCustomer = ref<Customer | null | undefined>(null)
+
+
+const { data: customers, refresh } = await useFetch<Customer[]>('/api/customers')
 
 // --- ยอดขายวันนี้ ---
 const salesToday = await getSalesToday()
@@ -41,6 +52,11 @@ function searchCustomer(q: string) {
 
 function selectCustomer(customerId: string) {
   selectedCustomer.value = customers.value?.find(c => c.id === customerId)
+  //get last order of customer
+  // const lastOrder = selectedCustomer.value?.orders[selectedCustomer.value?.orders.length - 1]
+  // if (lastOrder) {
+  //   selectedCustomerId.value = lastOrder.id
+  // }
 }
 
 // เพิ่มลูกค้าใหม่
@@ -138,7 +154,7 @@ interface CartItem {
   price: number
   cost: number
   qty: number
-  note?: string
+  note?: string | null
   _uid?: number
 }
 
@@ -217,6 +233,8 @@ interface Order {
     product: {
       id: string
       name: string
+      image?: string | null
+      cost: number | string | null
     }
   }[]
 }
@@ -253,7 +271,8 @@ function confirmOrder() {
       remark: item.note,
       product: {
         id: item.id,
-        name: item.name
+        name: item.name,
+        cost: item.cost
       }
     }))
   }
@@ -283,7 +302,8 @@ function lastOrderPrint() {
         remark: item.remark,
         product: {
           id: item.product.id,
-          name: item.product.name
+          name: item.product.name,
+          cost: item.product.cost
         }
       }))
     }   
@@ -363,87 +383,13 @@ async function submitOrder() {
 
 }
 
-// async function editOrder() {
-//   if (cart.value.length === 0) {
-//     toast.add({
-//       title: 'Error',
-//       description: 'กรุณาเลือกสินค้าอย่างน้อย 1 รายการในตะกร้า',
-//       color: 'error'
-//     })
-//     return
-//   }
-//   if (!selectedCustomerId.value) {
-//     toast.add({
-//       title: 'Error',
-//       description: 'กรุณาเลือกลูกค้า',
-//       color: 'error'
-//     })
-//     return
-//   }
-
-//     if(currentOrder.value){
-//       if(currentOrder.value.id){
-//         const order = {
-//           customerId: selectedCustomerId.value,
-//           items: cart.value,
-//           note: orderNote.value,
-//           total: totalPrice.value,
-//           totalCost: totalCost.value
-//         }
-
-//         const res_update = await updateOrder(currentOrder.value.id, order)
-
-//         // console.log(res_update)
-
-//         if (!res_update || !res_update.id) {
-//           throw new Error('Invalid order response from server')
-//         }   
-
-//         toast.add({
-//           title: 'Success',
-//           description: 'แก้ไขคําสั่งซื้อ ' + res_update.orderNumber + ' เรียบร้อยแล้ว!',
-//           icon: 'i-heroicons-check-circle',
-//           color: 'success'
-//         })
-//         currentOrder.value = res_update        
-//         showReceipt.value = true
-//       }
-//     }
-// }
-
 function clearCartAndOrder() {
   cart.value = []
   orderNote.value = ''
   selectedCustomerId.value = ''
 }
 
-
-// --- ใบเสร็จ ---
-
-// async function confirmOrder() {
-//   // 1) create order on server
-//   const res = await $fetch('/api/orders', { method: 'POST', body: { /* order payload */ } })
-//   currentOrder.value = res
-//   // 2) open modal
-//   showReceipt.value = true
-// }
-
-// function handleEdit(order: Order) {
-//   console.log('handleEdit',order)
-//   return
-//   // Option A: navigate to edit page
-//   // navigateTo(`/orders/${order.id}/edit`)
-//   // Option B: open inline edit modal in same page
-// }
-
-// function onPrinted(orderId: string) {
-//   console.log('onPrinted', orderId)
-//   return 
-//   // optional: mark printed status on server
-//   // $fetch(`/api/orders/${orderId}/printed`, { method: 'POST' }).catch(() => { })
-// }
-
-
+const open = ref(false)
 </script>
 
 <template>
@@ -599,6 +545,34 @@ function clearCartAndOrder() {
                     @change="selectCustomer(selectedCustomerId)"
                   />
 
+
+                <UDrawer 
+                v-if="selectedCustomer?.name && !addingNewCustomer" 
+                v-model:open="open" 
+                direction="right" 
+                title="ประวัติการซื้อล่าสุด" 
+                :description="`ประวัติการซื้อล่าสุดของ ${selectedCustomer.name}`"
+                >
+                  <UButton color="neutral" variant="subtle" trailing-icon="i-lucide-history" />
+
+                  <template #body>
+                    <!-- <OrderHistory :customer="selectedCustomer" @add-item="addToCart" /> -->
+                    <OrderHistory :customer-name="selectedCustomer.name" :customer-id="selectedCustomer.id" @add-item="addToCart" @add-remark="orderNote = $event ?? ''" />
+                  </template>
+                  <template #footer>
+                    <div class="w-full flex justify-end">
+                      <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="i-lucide-x"
+                        label="Close"
+                        @click="open = false"
+                      />
+                    </div>
+                  </template>
+
+                </UDrawer>
+
                   <!-- ปุ่มเพิ่มลูกค้าใหม่ -->
                   <UButton
                     v-if="!addingNewCustomer"
@@ -650,7 +624,7 @@ function clearCartAndOrder() {
                 :description="selectedCustomer.description"
                 icon="i-lucide-info"
                 class="mt-2 p-2"
-              />
+              />            
               
             </div>
 
@@ -666,7 +640,7 @@ function clearCartAndOrder() {
                 <div v-else>
                 <div 
                   v-for="(item, index) in cart" :key="item._uid"
-                  class="border border-gray-300 dark:border-gray-700 rounded-xl p-0 sm:p-2 shadow-sm hover:shadow-md transition-all bg-gray-50 dark:bg-gray-800 mb-2"
+                  class="border border-gray-300 dark:border-gray-700 rounded-xl p-0 sm:p-2 shadow-sm hover:shadow-md dark:hover:shadow-primary/30 transition-all bg-gray-50 dark:bg-gray-800 mb-2"
                   :class="{ 'bg-yellow-100 dark:bg-yellow-700': highlightItem === item._uid }">
                   <!-- ส่วนหัว -->
                   <div class="grid grid-cols-12 gap-2 sm:gap-3 items-center">

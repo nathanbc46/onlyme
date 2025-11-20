@@ -7,7 +7,7 @@ interface order {
         price: number;
         cost: number;
         qty: number;
-        note?: string | undefined;
+        note?: string | null;
         _uid?: number | undefined;
     }[];
     note: string;
