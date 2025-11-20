@@ -287,7 +287,7 @@ const items = (userId: string, userName: string) => [{
 
 <template>
   <ClientOnly>
-    <div v-if ="loadingData" class="p-4 text-muted italic"><UIcon name="i-lucide-loader" spin /> Loading...</div>
+    <div v-if ="loadingData" class="p-4 text-muted italic"><UIcon name="i-lucide-loader" class="animate-spin" /> Loading...</div>
     <ul v-else-if="users.length" role="list" class="divide-y divide-default">
       <li v-for="(user, index) in users" :key="index" class="flex items-center justify-between gap-3 py-3 px-4 sm:px-6">
         <div class="flex items-center gap-3 min-w-0">

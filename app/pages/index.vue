@@ -207,7 +207,7 @@ const columnCustomers = ref<TableColumn<TopCustomers>[]>([
       </ClientOnly>
       
       <div v-else>
-        <UIcon name="i-lucide-loader" spin /> Loading ...
+        <UIcon name="i-lucide-loader" class="animate-spin" /> Loading ...
       </div>
     </template>
   </UDashboardPanel>

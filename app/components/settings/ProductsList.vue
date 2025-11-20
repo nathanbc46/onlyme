@@ -582,7 +582,7 @@ const globalFilter = ref('')
       :rows = filteredProducts
       class="flex-1" >
       <template #loading>
-        <UIcon name="i-lucide-loader" spin /> Loading products...
+        <UIcon name="i-lucide-loader" class="animate-spin" /> Loading products...
       </template>
     </UTable>
       <div class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">

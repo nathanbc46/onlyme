@@ -415,7 +415,7 @@ function getRowItems(row: Row<OrderTable>) {
       :loading="status === 'pending'" 
       class="flex-1" >
       <template #loading>
-        <UIcon name="i-lucide-loader" spin /> Loading ...
+        <UIcon name="i-lucide-loader" class="animate-spin" /> Loading ...
       </template>
     </UTable>
 

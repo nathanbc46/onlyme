@@ -224,14 +224,16 @@ const onScroll = (e: Event) => {
               <div class="flex-1">
                 <p class="font-medium leading-tight text-gray-900 dark:text-gray-100">
                   {{ item.product.name }}
-                  <span v-if="item.remark" class="text-xs text-gray-600 dark:text-gray-300">
-                    ({{ item.remark }})
-                  </span>
                 </p>
-                <p class="text-sm text-gray-700 dark:text-gray-300">
+                <p v-if="item.remark" class="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                  ({{ item.remark }})
+                </p>
+                <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
                   x{{ item.quantity }} • ฿{{ item.price }}
                 </p>
               </div>
+
+
             </div>
           </div>
            <template v-if="order.remark" #footer> 

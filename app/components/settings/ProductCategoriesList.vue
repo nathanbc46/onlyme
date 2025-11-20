@@ -89,7 +89,7 @@ async function onDeleteProductCategory(id: string) {
 <template>
     <ClientOnly>
         <div v-if="loadingData" class="p-4 text-muted italic">
-            <UIcon name="i-lucide-loader" spin /> Loading...
+            <UIcon name="i-lucide-loader" class="animate-spin" /> Loading...
         </div>
         <ul v-else-if="productCategories.length" class="divide-y divide-default">
             <li 
