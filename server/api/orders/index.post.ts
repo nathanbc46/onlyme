@@ -7,9 +7,9 @@ const orderSchema = z.object({
         price: z.coerce.number().nonnegative(),
         cost: z.coerce.number().nonnegative(),
         qty: z.coerce.number().nonnegative(),
-        note: z.string().optional()
+        note: z.string().nullable().optional()
     })),
-    note: z.string().optional(),
+    note: z.string().nullable().optional(),
     total: z.coerce.number().nonnegative(),
     totalCost: z.coerce.number().nonnegative()
 });
