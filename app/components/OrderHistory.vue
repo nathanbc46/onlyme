@@ -160,7 +160,7 @@ const addItemToCart = (item: CartItemHistory, remark: string = '') => {
   toast.add({
     title: 'Item added to cart',
     color: 'success',
-    duration: 1000
+    duration: 500
   })
   emit("addItem", item)
   emit("addRemark", remark)
@@ -170,7 +170,7 @@ const reorderWholeOrder = (order: Order) => {
   toast.add({
     title: 'Item added to cart',
     color: 'success',
-    duration: 1000
+    duration: 500
   })
   order.orderItems.forEach(item => {
     emit("addItem", {
