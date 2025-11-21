@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
       customerId: String(query.customerId)
     },
     take: limit + 1,
-    ...(cursorId && { cursor: { id: cursorId }, skip: 1 }),
+    ...(cursorId && { cursor: { id: cursorId }}),
     orderBy: [
       { createdAt: "desc" },
       { id: "desc" }          // ⭐ ต้องใส่อันนี้เพื่อให้ cursor ใช้ id ได้
