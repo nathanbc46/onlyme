@@ -186,12 +186,8 @@ const reorderWholeOrder = (order: Order) => {
 }
 </script>
 
-<template>
-  <div
-    ref="scrollContainer"
-    class="space-y-6 overflow-y-auto pr-2"
-    style="max-height: calc(100vh - 140px);"
-  >
+<template ref="scrollContainer">
+
 
     <!-- ORDER LIST -->
     <div class="space-y-8">
@@ -298,5 +294,5 @@ const reorderWholeOrder = (order: Order) => {
     <!-- 🔥 TRIGGER (magic happens here) -->
     <div ref="bottomTrigger" class="h-10"></div>
 
-  </div>
+  
 </template>
