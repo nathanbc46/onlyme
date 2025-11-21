@@ -389,6 +389,43 @@ function clearCartAndOrder() {
   selectedCustomerId.value = ''
 }
 
+/* const tags = ["พิเศษ", "ไม่หวาน", "ไม่ผัก", "ไม่เผ็ด", "แยกน้ำ"]
+
+function appendNote(item : CartItem, text = '') {
+  if (!item.note) {
+    item.note = text
+    return
+  }
+
+  // กันการใส่คำซ้ำ
+  if (item.note.includes(text)) return
+
+  // ต่อท้ายแบบเว้นวรรคอัตโนมัติ
+  item.note = `${item.note} ${text}`.trim()
+} */
+
+// Tags หลัก
+const tags = ["พิเศษ", "ไม่หวาน","ไม่ผัก","เผ็ดน้อย", "แยกน้ำ", "เพิ่มเส้น"]
+
+// Toggle Tag สำหรับแต่ละ item
+function toggleTag(item : CartItem, tag = '') {
+  if (!item.note) {
+    item.note = tag
+    return
+  }
+
+  const words = item.note.split(' ')
+
+  if (words.includes(tag)) {
+    // ถ้าเคยเลือกแล้ว -> เอาออก
+    item.note = words.filter(w => w !== tag).join(' ')
+  } else {
+    // เพิ่ม tag ใหม่
+    item.note = `${item.note} ${tag}`.trim()
+  }
+}
+
+
 const open = ref(false)
 </script>
 
@@ -462,7 +499,7 @@ const open = ref(false)
               <UButton 
                 v-for="cat in categoriesData"
                   :key="cat.id"
-                  color="neutral"
+                 
                     :icon="
                     cat.name === 'ยำแซ่บซี๊ด'
                       ? 'i-heroicons-fire'
@@ -481,6 +518,7 @@ const open = ref(false)
                       : 'mdi:bowl-mix-outline'
                   "
                   :variant="category === cat.name ? 'solid' : 'outline'"
+                  :color="category === cat.name  ? 'primary' : 'neutral'"
                 @click="category = cat.name"
 
               >
@@ -643,49 +681,91 @@ const open = ref(false)
                 </div>
 
                 <div v-else>
-                <div 
-                  v-for="(item, index) in cart" :key="item._uid"
-                  class="border border-gray-300 dark:border-gray-700 rounded-xl p-0 sm:p-2 shadow-sm hover:shadow-md dark:hover:shadow-primary/30 transition-all bg-gray-50 dark:bg-gray-800 mb-2"
-                  :class="{ 'bg-yellow-100 dark:bg-yellow-700': highlightItem === item._uid }">
-                  <!-- ส่วนหัว -->
-                  <div class="grid grid-cols-12 gap-2 sm:gap-3 items-center">
-                    <div class="col-span-4 font-semibold truncate text-sm sm:text-base" :title=" item.name">
-                      <UBadge variant="subtle">{{ index + 1 }}</UBadge> {{ item.name }}
-                    </div>
-                    <div class="col-span-5">
-                      <UInput 
-                        v-model="item.note" placeholder="เช่น 'พิเศษ ไม่เผ็ด'" size="sm"
-                        icon="i-lucide-message-square-text" class="w-full text-sm sm:text-base" />
-                    </div>
-                    <div class="col-span-3 text-right">
-                      <UButton 
-                        icon="i-heroicons-trash" color="error" variant="ghost" size="sm"
-                        @click="removeFromCart(index)" />
-                    </div>
-                  </div>
 
-                  <!-- ส่วนรายละเอียด -->
-                  <div class="grid grid-cols-12 gap-2 sm:gap-3 items-center mt-2">
-                    <div class="col-span-4 flex items-center gap-2 text-sm sm:text-base">
-                      <span class="text-gray-500">ราคา:</span>
-                      <UInput v-model.number="item.price" type="number" size="sm" step="10" class="w-20" />
+                    <div 
+                      v-for="(item, index) in cart" :key="item._uid"
+                      class="border border-gray-300 dark:border-gray-700 rounded-xl p-0 sm:p-2 shadow-sm hover:shadow-md dark:hover:shadow-primary/30 transition-all bg-gray-50 dark:bg-gray-800 mb-2"
+                      :class="{ 'bg-yellow-100 dark:bg-yellow-700': highlightItem === item._uid }">
+
+                      <!-- ส่วนหัว -->
+                      <div class="grid grid-cols-12 gap-2 sm:gap-3 items-center">
+                        <div class="col-span-4 font-semibold truncate text-sm sm:text-base" :title=" item.name">
+                          <UBadge variant="subtle">{{ index + 1 }}</UBadge> {{ item.name }}
+                        </div>
+
+                        <!-- Input + Chip Tags -->
+                        <div class="col-span-7">
+                          <!-- Input -->
+                          <UInput
+                            v-model="item.note"
+                            placeholder="เช่น 'พิเศษ ไม่เผ็ด'"
+                            size="sm"
+                            icon="i-lucide-message-square-text"
+                            class="w-full text-sm sm:text-base flex-1"
+                            :ui="{ trailing: 'pe-1' }"
+                          >
+                            <template v-if="item.note?.length" #trailing>
+                              <UButton 
+                                color="neutral"
+                                variant="link"
+                                size="sm"
+                                icon="i-lucide-circle-x"
+                                aria-label="Clear input"
+                                @click="item.note = ''"
+                              />
+                            </template>
+                          </UInput>
+
+                          <!-- Chip / Tag Buttons -->
+                          <div class="flex flex-wrap gap-1 mt-1">
+                            <UButton
+                              v-for="tag in tags"
+                              :key="tag"
+                              size="xs"
+                              :variant="item.note?.includes(tag) ? 'solid' : 'outline'"
+                              :color="item.note?.includes(tag) ? 'primary' : 'neutral'"
+                              @click="toggleTag(item, tag)"
+                            >
+                              {{ tag }}
+                            </UButton>
+                          </div>
+                        </div>
+
+                        <div class="col-span-1 text-right">
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="sm"
+                            @click="removeFromCart(index)"
+                          />
+                        </div>
+                      </div>
+
+                      <!-- ส่วนรายละเอียด -->
+                      <div class="grid grid-cols-12 gap-2 sm:gap-3 items-center mt-2">
+                        <div class="col-span-4 flex items-center gap-2 text-sm sm:text-base">
+                          <span class="text-gray-500">ราคา:</span>
+                          <UInput v-model.number="item.price" type="number" size="sm" step="10" class="w-20" />
+                        </div>
+                        <div class="col-span-5 flex items-center justify-center gap-2">
+                          <UButton 
+                            icon="i-heroicons-minus" size="sm" color="neutral" variant="ghost"
+                            @click="decreaseQty(index)" />
+                          <UBadge v-if="item.qty > 1" color="error" variant="subtle">{{ item.qty }}</UBadge>
+                          <span v-else class="w-6 text-xs sm:text-sm text-center">{{ item.qty }}</span>
+                          <UButton 
+                            icon="i-heroicons-plus" size="sm" color="neutral" variant="ghost"
+                            @click="increaseQty(index)" />
+                        </div>
+                        <div
+                          class="col-span-3 text-right font-semibold text-gray-700 dark:text-gray-200 text-sm sm:text-base">
+                          ฿{{ ((item.price || 0) * (item.qty || 0)).toFixed(2) }}
+                        </div>
+                      </div>
                     </div>
-                    <div class="col-span-5 flex items-center justify-center gap-2">
-                      <UButton 
-                        icon="i-heroicons-minus" size="sm" color="neutral" variant="ghost"
-                        @click="decreaseQty(index)" />
-                      <UBadge v-if="item.qty > 1" color="error" variant="subtle">{{ item.qty }}</UBadge>
-                      <span v-else class="w-6 text-xs sm:text-sm text-center">{{ item.qty }}</span>
-                      <UButton 
-                        icon="i-heroicons-plus" size="sm" color="neutral" variant="ghost"
-                        @click="increaseQty(index)" />
-                    </div>
-                    <div
-                      class="col-span-3 text-right font-semibold text-gray-700 dark:text-gray-200 text-sm sm:text-base">
-                      ฿{{ ((item.price || 0) * (item.qty || 0)).toFixed(2) }}
-                    </div>
-                  </div>
-                </div>
+                 
+
                 </div>
 
               </transition-group>
@@ -711,7 +791,7 @@ const open = ref(false)
               <UButton 
                 :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-2"
                 :loading="loadingSubmit"
-                color="success" block @click="confirmOrder">
+                color="primary" block @click="confirmOrder">
                 <span v-if="loadingSubmit"><UIcon name="i-lucide-loader" spin /> กําลังสร้าง...</span>
                 <span v-else><UIcon name="i-lucide-list-check" /> สรุปคำสั่งซื้อ</span>
               </UButton>
