@@ -546,12 +546,17 @@ const open = ref(false)
                   />
 
 
-                <UDrawer 
+                <USlideover 
                 v-if="selectedCustomer?.name && !addingNewCustomer" 
                 v-model:open="open" 
                 direction="right" 
                 title="ประวัติการซื้อล่าสุด" 
                 :description="`ประวัติการซื้อล่าสุดของ ${selectedCustomer.name}`"
+                :close="{
+                  color: 'primary',
+                  variant: 'outline',
+                  class: 'rounded-full'
+                }"
                 >
                   <UButton color="neutral" variant="subtle" trailing-icon="i-lucide-history" />
 
@@ -559,7 +564,7 @@ const open = ref(false)
                     <!-- <OrderHistory :customer="selectedCustomer" @add-item="addToCart" /> -->
                     <OrderHistory :customer-name="selectedCustomer.name" :customer-id="selectedCustomer.id" @add-item="addToCart" @add-remark="orderNote = $event ?? ''" />
                   </template>
-                  <template #footer>
+                  <!-- <template #footer>
                     <div class="w-full flex justify-end">
                       <UButton
                         color="neutral"
@@ -569,9 +574,9 @@ const open = ref(false)
                         @click="open = false"
                       />
                     </div>
-                  </template>
+                  </template> -->
 
-                </UDrawer>
+                </USlideover>
 
                   <!-- ปุ่มเพิ่มลูกค้าใหม่ -->
                   <UButton

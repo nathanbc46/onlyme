@@ -1,13 +1,17 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 const toast = useToast()
+
 // --------------------------
-// PROPS 
+// PROPS
 // --------------------------
 const props = defineProps<{
   customerId: string
   customerName: string
 }>()
 
+// --------------------------
+// TYPES
+// --------------------------
 interface OrderItemProduct {
   id: string;
   userId: string;
@@ -30,7 +34,6 @@ interface OrderItem {
   cost: string | null;
   total: string | null;
   totalItemCost: string | null;
-
   product: OrderItemProduct;
 }
 
@@ -44,7 +47,6 @@ interface Order {
   remark: string | null;
   totalAmount: string;
   totalCost: string | null;
-
   orderItems: OrderItem[];
 }
 
@@ -62,8 +64,8 @@ interface CartItemHistory {
 }
 
 const emit = defineEmits<{
- addItem: [item : CartItemHistory]
- addRemark: [remark: string | null]
+  addItem: [item: CartItemHistory]
+  addRemark: [remark: string | null]
 }>()
 
 // --------------------------
@@ -74,9 +76,13 @@ const cursor = ref<string | null>(null)
 const loading = ref(false)
 const finished = ref(false)
 
+const scrollContainer = ref<HTMLElement | null>(null)
+const bottomTrigger = ref<HTMLElement | null>(null)
+
 // --------------------------
-// FETCH ORDERS (LAZY)
+// FETCH ORDERS WITH CURSOR
 // --------------------------
+
 const fetchOrders = async () => {
   if (loading.value || finished.value) return
   loading.value = true
@@ -96,20 +102,59 @@ const fetchOrders = async () => {
   }
 
   orders.value.push(...res.data)
-  cursor.value = res.nextCursor
+  cursor.value = res.nextCursor ?? null
 
-  if (!res.nextCursor) {
-    finished.value = true        // ⭐ ต้องมี
-  }
+  if (!res.nextCursor) finished.value = true
+
   loading.value = false
+
+  return true   // ⭐ บอกว่าโหลดได้จริง
 }
 
-onMounted(() => {
-  fetchOrders()
+// --------------------------
+// ON MOUNT → FETCH + SETUP OBSERVER
+// --------------------------
+
+const autoFillScreen = async () => {
+  await nextTick()
+  const el = scrollContainer.value
+  if (!el || finished.value) return
+
+  const notScrollable = el.scrollHeight <= el.clientHeight + 20
+
+  if (notScrollable) {
+    const loaded = await fetchOrders()
+
+    // ⭐ ถ้าโหลดไม่สำเร็จ (ไม่มีข้อมูลใหม่) → หยุดทันที
+    if (!loaded) return
+
+    // ⭐ ถ้าโหลดเพิ่มได้ → ตรวจอีกครั้ง
+    autoFillScreen()
+  }
+}
+
+
+onMounted(async () => {
+  await fetchOrders()
+  autoFillScreen()   // เติมหน้าจอให้พอดี
+
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0]?.isIntersecting) {
+      fetchOrders().then((loaded) => {
+        if (loaded) autoFillScreen()
+      })
+    }
+  }, {
+    root: scrollContainer.value,
+    threshold: 0.1
+  })
+
+  if (bottomTrigger.value) observer.observe(bottomTrigger.value)
 })
 
+
 // --------------------------
-// CLICK ACTIONS
+// ACTIONS
 // --------------------------
 const addItemToCart = (item: CartItemHistory, remark: string = '') => {
   toast.add({
@@ -121,7 +166,6 @@ const addItemToCart = (item: CartItemHistory, remark: string = '') => {
   emit("addRemark", remark)
 }
 
-// ⭐ Reorder ทั้งออเดอร์
 const reorderWholeOrder = (order: Order) => {
   toast.add({
     title: 'Item added to cart',
@@ -130,33 +174,25 @@ const reorderWholeOrder = (order: Order) => {
   })
   order.orderItems.forEach(item => {
     emit("addItem", {
-                id: item.product.id,
-                note: item.remark,
-                name: item.product.name,
-                price: Number(item.price),
-                cost: Number(item.product.cost),
-                qty: Number(item.quantity)
-              })
+      id: item.product.id,
+      note: item.remark,
+      name: item.product.name,
+      price: Number(item.price),
+      cost: Number(item.product.cost),
+      qty: Number(item.quantity)
+    })
   })
-   emit("addRemark", order.remark)
-  //emit("reorder-all", order)
-}
-
-// Infinite scroll trigger
-const onScroll = (e: Event) => {
-  const el = e.target as HTMLElement
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 150) {
-    fetchOrders()
-  }
+  emit("addRemark", order.remark)
 }
 </script>
 
 <template>
   <div
+    ref="scrollContainer"
     class="space-y-6 overflow-y-auto pr-2"
     style="max-height: calc(100vh - 140px);"
-    @scroll.passive="onScroll"
   >
+
     <!-- ORDER LIST -->
     <div class="space-y-8">
       <div
@@ -164,32 +200,35 @@ const onScroll = (e: Event) => {
         :key="order.id"
         class="relative pl-6"
       >
-        <!-- <div class="absolute left-0 top-2 w-3 h-3 bg-primary rounded-full"></div> -->
-
         <UCard variant="subtle">
-        <template #header>
-          <div class="flex items-center justify-between w-full">
-            <span><UIcon name="i-lucide-clock-8" /> {{ formatDateTime(new Date(order.createdAt)) }}</span>
 
-            <span class="text-green-600 font-bold">
-              ฿{{ order.totalAmount }}
-            </span>
+          <!-- HEADER -->
+          <template #header>
+            <div class="flex items-center justify-between w-full">
 
-            <!-- ⭐ REORDER BUTTON -->
+              <span class="flex items-center gap-1">
+                <UIcon name="i-lucide-clock-8" />
+                {{ formatDateTime(new Date(order.createdAt)) }}
+              </span>
+
+              <span class="text-green-600 font-bold">
+                ฿{{ order.totalAmount }}
+              </span>
+
               <UButton 
-              size="xs" 
-              variant="soft" 
-              color="primary"
-              class="active:scale-95 transition-transform duration-150"
-              @click="reorderWholeOrder(order)">
-              สั่งออเดอร์นี้อีกครั้ง
+                size="xs" 
+                variant="soft" 
+                color="primary"
+                class="active:scale-95 transition-transform duration-150"
+                @click="reorderWholeOrder(order)"
+              >
+                สั่งออเดอร์นี้อีกครั้ง
               </UButton>
-          </div>
-        </template>
+            </div>
+          </template>
 
-          <!-- Items -->
+          <!-- ITEMS -->
           <div class="grid grid-cols-2 gap-3">
-            <!-- PRODUCT ITEMS -->
             <div
               v-for="item in order.orderItems"
               :key="item.id"
@@ -217,7 +256,7 @@ const onScroll = (e: Event) => {
                   v-if="item.product.image"
                   :src="item.product.image"
                   class="w-10 h-10 rounded-full object-cover"
-                >
+                />
                 <span v-else class="text-xs">🍽️</span>
               </div>
 
@@ -233,22 +272,31 @@ const onScroll = (e: Event) => {
                 </p>
               </div>
 
-
             </div>
           </div>
-           <template v-if="order.remark" #footer> 
-              <p class="text-xs"><UIcon name="i-lucide-scroll-text" /> {{ order.remark }}</p>
-           </template>
-          
+
+          <!-- FOOTER -->
+          <template v-if="order.remark" #footer>
+            <p class="text-xs">
+              <UIcon name="i-lucide-scroll-text" /> {{ order.remark }}
+            </p>
+          </template>
+
         </UCard>
       </div>
     </div>
 
     <!-- LOADING -->
     <div v-if="loading" class="text-center text-gray-500 py-3">
-      <UIcon name="i-lucide-loader" class="animate-spin" /> กำลังโหลด...</div>
+      <UIcon name="i-lucide-loader" class="animate-spin" /> กำลังโหลด...
+    </div>
+
     <div v-if="finished" class="text-center text-gray-400 py-3 text-sm">
       ไม่มีข้อมูลเพิ่มเติม
     </div>
+
+    <!-- 🔥 TRIGGER (magic happens here) -->
+    <div ref="bottomTrigger" class="h-10"></div>
+
   </div>
 </template>
