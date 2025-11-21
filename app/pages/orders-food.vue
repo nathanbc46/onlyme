@@ -425,6 +425,27 @@ function toggleTag(item : CartItem, tag = '') {
   }
 }
 
+// Tags หลัก
+const tagsNode = ["ไม่รับช้อนซ่อม", "ไม่รับถุงพลาสติก"]
+
+// Toggle Tag สำหรับแต่ละ item
+function toggleTagNode(tag = '') {
+  if (!orderNote.value) {
+    orderNote.value = tag
+    return
+  }
+
+  const words = orderNote.value.split(' ')
+
+  if (words.includes(tag)) {
+    // ถ้าเคยเลือกแล้ว -> เอาออก
+    orderNote.value = words.filter(w => w !== tag).join(' ')
+  } else {
+    // เพิ่ม tag ใหม่
+    orderNote.value = `${orderNote.value} ${tag}`.trim()
+  }
+}
+
 
 const open = ref(false)
 </script>
@@ -717,7 +738,7 @@ const open = ref(false)
                           </UInput>
 
                           <!-- Chip / Tag Buttons -->
-                          <div class="flex flex-wrap gap-1 mt-1">
+                          <div class="hidden sm:flex flex-wrap gap-1 mt-1">
                             <UButton
                               v-for="tag in tags"
                               :key="tag"
@@ -775,9 +796,44 @@ const open = ref(false)
           <!-- 🔹 สรุปออเดอร์ (sticky ด้านล่าง) -->
           <div class="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4 sticky bottom-0 z-10 space-y-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-900">
 
-            <UInput
-               v-model="orderNote" size="sm" class="w-full text-sm sm:text-base" icon="i-lucide-scroll-text"
-              placeholder="รายละเอียดเพิ่มเติมของทั้งออเดอร์ เช่น 'แยกถุง', 'ส่งก่อนเที่ยง'" />
+            <div class="flex items-center gap-2 w-full">
+              <!-- Input -->
+              <UInput
+                v-model="orderNote"
+                size="sm"
+                icon="i-lucide-scroll-text"
+                placeholder="รายละเอียดเพิ่มเติมของทั้งออเดอร์ เช่น 'แยกถุง', 'ส่งก่อนเที่ยง'" 
+                class="flex-1 text-sm sm:text-base min-w-0"
+                :ui="{ trailing: 'pe-1' }"
+              >
+                <template v-if="orderNote?.length" #trailing>
+                  <UButton 
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    icon="i-lucide-circle-x"
+                    aria-label="Clear input"
+                    @click="orderNote = ''"
+                  />
+                </template>
+              </UInput>
+
+              <!-- Chip / Tag Buttons -->
+              <div class="flex gap-1 shrink-0 overflow-x-auto">
+                <UButton
+                  v-for="tag in tagsNode"
+                  :key="tag"
+                  size="xs"
+                  :variant="orderNote?.includes(tag) ? 'solid' : 'outline'"
+                  :color="orderNote?.includes(tag) ? 'primary' : 'neutral'"
+                  @click="toggleTagNode(tag)"
+                >
+                  {{ tag }}
+                </UButton>
+              </div>
+            </div>
+
+
             <div class="flex justify-between items-center font-semibold text-base sm:text-lg">
               <div>รวมทั้งหมด: ({{ cart.length }} รายการ)</div>
               <div>฿{{ totalPrice.toFixed(2) }}</div>
