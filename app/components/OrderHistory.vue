@@ -252,7 +252,7 @@ const reorderWholeOrder = (order: Order) => {
                   v-if="item.product.image"
                   :src="item.product.image"
                   class="w-10 h-10 rounded-full object-cover"
-                />
+                >
                 <span v-else class="text-xs">🍽️</span>
               </div>
 
@@ -292,7 +292,7 @@ const reorderWholeOrder = (order: Order) => {
     </div>
 
     <!-- 🔥 TRIGGER (magic happens here) -->
-    <div ref="bottomTrigger" class="h-10"></div>
+    <div ref="bottomTrigger" class="h-10" />
 
   
 </template>

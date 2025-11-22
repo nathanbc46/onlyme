@@ -43,7 +43,15 @@ function closeModal() {
 
 </script>
 <template>
-    <UModal v-model:open="isOpen" :title="title" :description="description">
+    <UModal 
+    v-model:open="isOpen" 
+    :title="title" 
+    :description="description"
+    :close="{
+            color: 'primary',
+            variant: 'outline',
+            class: 'rounded-full'
+          }">
         <!-- <slot name="button">
             <UButton color="error" variant="subtle" size="xs" icon="i-lucide-trash" @click="open = true" />
         </slot> -->

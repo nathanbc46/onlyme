@@ -331,7 +331,12 @@ const items = (userId: string, userName: string) => [{
 
   <UModal 
   v-model:open="openModal" :title="' Reset password for : ' + userNameReset"
-    description="Are you sure you want to reset the password for this user?">
+    description="Are you sure you want to reset the password for this user?"
+      :close="{
+        color: 'primary',
+        variant: 'outline',
+        class: 'rounded-full'
+      }">
     <template #body>
       <UForm :schema="schema" :state="state" class="flex flex-col gap-4 " @submit="onSetUserPassword">
         <UFormField name="password">
@@ -355,8 +360,16 @@ const items = (userId: string, userName: string) => [{
   </UModal>
 
   <UModal 
-  v-model:open="openModalRemove" :title="' Delete user : ' + userNameRemove"
-    description="Are you sure you want to delete this user?" @confirm="onDeleteUser()">
+    v-model:open="openModalRemove" 
+    :title="' Delete user : ' + userNameRemove"
+    description="Are you sure you want to delete this user?" 
+    :close="{
+      color: 'primary',
+      variant: 'outline',
+      class: 'rounded-full'
+    }"
+    @confirm="onDeleteUser()"
+      >
 
     <template #body>
       <div class="flex justify-end gap-2">
@@ -369,7 +382,13 @@ const items = (userId: string, userName: string) => [{
 
   <UModal 
   v-model:open="openModalBan" :title="' Ban/Unban user : ' + userNameBan"
-    description="Are you sure you want to ban/unban this user?" @confirm="onDeleteUser()">
+    description="Are you sure you want to ban/unban this user?"
+    :close="{
+      color: 'primary',
+      variant: 'outline',
+      class: 'rounded-full'
+    }"
+     @confirm="onDeleteUser()">
 
     <template #body>
       <div class="flex justify-end gap-2">

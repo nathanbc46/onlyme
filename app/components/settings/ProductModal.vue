@@ -108,7 +108,16 @@ function onFileClick() {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" :title="props.title" :description="props.description" @close="closeModal">
+  <UModal 
+  v-model:open="isOpen" 
+  :title="props.title" 
+  :description="props.description" 
+  :close="{
+        color: 'primary',
+        variant: 'outline',
+        class: 'rounded-full'
+      }"
+  @close="closeModal" >
     <template #body>
       <UForm :schema="schema" :state="state" class="flex flex-col gap-4" @submit="onSubmit">
         <UFormField name="categoryId" label="Product Category">

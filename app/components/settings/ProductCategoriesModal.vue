@@ -40,7 +40,15 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 }
 </script>
 <template>
-    <UModal v-model:open="open" :title="props.title" :description="props.description">
+    <UModal 
+    v-model:open="open" 
+    :title="props.title" 
+    :description="props.description"
+    :close="{
+        color: 'primary',
+        variant: 'outline',
+        class: 'rounded-full'
+      }">
 
         <UButton v-if="props.mode === 'add'" label="Add Product Category" icon="i-lucide-plus" color="neutral" class="w-fit lg:ms-auto" />
         <UButton v-else icon="i-lucide-pencil" color="neutral" class="w-fit lg:ms-auto" size="xs" />

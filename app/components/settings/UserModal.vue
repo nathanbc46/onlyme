@@ -103,7 +103,16 @@ function onFileClick() {
 </script>
 
 <template>
-    <UModal v-model:open="open" :title="props.title" :description="props.description">
+    <UModal 
+    v-model:open="open" 
+    :title="props.title" 
+    :description="props.description"
+    :close="{
+    color: 'primary',
+    variant: 'outline',
+    class: 'rounded-full'
+    }"
+      >
         
         <UButton v-if="props.mode === 'add'" label="Add user" icon="i-lucide-user-plus" color="neutral" class="w-fit lg:ms-auto" />
         <UButton v-else  icon="i-lucide-pencil" color="neutral" class="w-fit lg:ms-auto" size="xs" />

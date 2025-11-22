@@ -110,7 +110,7 @@ const column = ref<TableColumn<Members>[]>([
       <div v-if="error" class="p-4 text-error italic">Error: {{ error?.message }}</div>
       <UTable v-else v-model:column-visibility="columnVisibility" :columns="column" :data="members" :loading="status === 'pending'"  class="flex-1">
         <template #loading>
-          <UIcon name="i-lucide-loader" spin /> Loading ...
+          <UIcon name="i-lucide-loader" class="animate-spin" /> Loading ...
         </template>
       </UTable>
 

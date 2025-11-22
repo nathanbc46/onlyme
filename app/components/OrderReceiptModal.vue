@@ -102,7 +102,16 @@ const printReceipt = (closemodal = false) => {
 <template>
   <div>
     <!-- Modal -->
-    <UModal :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" :open="show" size="lg" :close="{ onClick : close }" >
+    <UModal 
+    :title="`สรุปคำสั่งซื้อ — ${ order.orderNumber }`" :description="`ลูกค้า: ${ order.customer?.name || '-' } • ${ formattedDate }`" 
+    :open="show" size="lg" 
+    :close="{
+            color: 'primary',
+            variant: 'outline',
+            class: 'rounded-full',
+            onClick : close 
+          }"
+     >
 
       <template #body>
         <!-- 
