@@ -31,7 +31,7 @@ const newCustomerName = ref('')
 const selectedCustomer = ref<Customer | null | undefined>(null)
 
 
-const { data: customers, refresh } = await useFetch<Customer[]>('/api/customers')
+const { data: customers, refresh, status: statusCustomers } = await useFetch<Customer[]>('/api/customers')
 
 // --- ยอดขายวันนี้ ---
 const salesToday = await getSalesToday()
@@ -108,7 +108,7 @@ const categories = ref<SelectMenuItem[]>([])
 const category = ref('all') // ค่าเริ่มต้นคือ 'all'
 
 // ดึงข้อมูลหมวดหมู่จาก API
-const { data: categoriesData } = await useFetch<{ id: string; name: string }[]>('/api/product-categories?k=')
+const { data: categoriesData, status: statusCategories } = await useFetch<{ id: string; name: string }[]>('/api/product-categories?k=')
 if (categoriesData.value) {
   categories.value = [
     { label: 'All', value: 'all' },
@@ -120,7 +120,9 @@ if (categoriesData.value) {
 }
 
 // ดึงข้อมูลสินค้า
+const loadingProducts = ref(false)
 try {
+  loadingProducts.value = true
   start({ force: true })
   const products = await getProducts()
   if (Array.isArray(products)) {
@@ -131,8 +133,11 @@ try {
 } catch (err) {
   console.error(err)
 } finally {
+  loadingProducts.value = false
   finish()
 }
+
+const isLoading = computed(() => statusCustomers.value === 'pending' || statusCategories.value === 'pending' || loadingProducts.value)
 
 // กรองข้อมูลตามการค้นหาและหมวดหมู่
 const filteredData = computed(() => {
@@ -466,7 +471,11 @@ const open = ref(false)
 
     <!-- 🔹 Body -->
     <template #body>
-      <div class="flex flex-col lg:grid lg:grid-cols-2 h-full overflow-hidden">
+      <div v-if="isLoading" class="flex flex-col items-center justify-center h-full">
+        <UIcon name="i-lucide-loader-2" class="animate-spin text-4xl text-primary" />
+        <span class="mt-2 text-gray-500">กำลังโหลดข้อมูล...</span>
+      </div>
+      <div v-else class="flex flex-col lg:grid lg:grid-cols-2 h-full overflow-hidden">
 
         <!-- 🍛 เมนูอาหาร -->
         <div class="flex flex-col p-1 h-[60%] sm:h-full overflow-hidden">

@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onlyme-app
+    ports:
+      - "${APP_PORT:-3000}:80"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - NUXT_PUBLIC_BASE_URL=${NUXT_PUBLIC_BASE_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - NODE_ENV=${NODE_ENV:-production}
+    restart: unless-stopped
+    networks:
+      - onlyme-network
+
+networks:
+  onlyme-network:
+    driver: bridge

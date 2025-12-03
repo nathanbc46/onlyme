@@ -18,7 +18,21 @@ export default defineEventHandler(async (event) => {
         const page = Number(query.page) || 1
         const pageSize = Number(query.pageSize) || 5
         const search = String(query.search) || ''
+        const sortBy = String(query.sortBy) || 'createdAt'
+        const sortOrder = (query.sortOrder === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc'
         const skip = (page - 1) * pageSize
+
+        // Map frontend column names to Prisma orderBy
+        const sortFieldMap: Record<string, any> = {
+            'orderNumber': { orderNumber: sortOrder },
+            'status': { status: sortOrder },
+            'customer': { customer: { name: sortOrder } },
+            'totalAmount': { totalAmount: sortOrder },
+            'totalCost': { totalCost: sortOrder },
+            'createdAt': { createdAt: sortOrder }
+        }
+
+        const orderBy = sortFieldMap[sortBy] || { createdAt: 'desc' }
 
         const where =
             typeof search === 'string' && search.trim() !== ''
@@ -73,9 +87,7 @@ export default defineEventHandler(async (event) => {
                     }
                 },
                 where,
-                orderBy: {
-                    createdAt: 'desc'
-                }
+                orderBy
             }),
             prisma.order.count({ where })
         ])

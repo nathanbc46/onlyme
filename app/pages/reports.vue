@@ -48,16 +48,28 @@ const pagination = ref({
 // Search input
 const searchTerm = ref('')
 
+// Sorting state - default sort by created date (newest first)
+const sorting = ref([
+  { id: 'createdAt', desc: true }
+])
+
 const loadData = async () => {
 
   try {
     status.value = 'pending'
     error.value = null
+    
+    // Extract sort parameters from sorting state
+    const sortBy = sorting.value[0]?.id || 'createdAt'
+    const sortOrder = sorting.value[0]?.desc ? 'desc' : 'asc'
+    
     const data = await $fetch('/api/orders', {
       query: {
         page: pagination.value.pageIndex,
         pageSize: pagination.value.pageSize,
-        search: searchTerm.value
+        search: searchTerm.value,
+        sortBy,
+        sortOrder
       },
     })
 
@@ -76,6 +88,12 @@ const loadData = async () => {
 
 watch(searchTerm, debounce(loadData, 500))
 watch([() => pagination.value.pageIndex, () => pagination.value.pageSize], loadData, { immediate: true })
+
+// Watch for sorting changes and reload data
+watch(sorting, () => {
+  pagination.value.pageIndex = 1 // Reset to first page when sorting changes
+  loadData()
+}, { deep: true })
 
 const columnVisibility = ref({
   id: false // ซ่อนคอลัมน์ id
@@ -203,7 +221,21 @@ const columns: TableColumn<OrderTable>[] = [
       }
     },
   },
-  { accessorKey: 'orderNumber', header: 'Order Number',
+  { accessorKey: 'orderNumber', header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Order Number',
+        icon: isSorted 
+          ? isSorted === 'asc' 
+            ? 'i-lucide-arrow-up-narrow-wide' 
+            : 'i-lucide-arrow-down-wide-narrow' 
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     cell: ({ row }) => {
       return h(
         'span',
@@ -217,7 +249,21 @@ const columns: TableColumn<OrderTable>[] = [
    },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Status',
+        icon: isSorted 
+          ? isSorted === 'asc' 
+            ? 'i-lucide-arrow-up-narrow-wide' 
+            : 'i-lucide-arrow-down-wide-narrow' 
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     meta: {
       class: {
         th: 'text-center font-semibold',
@@ -235,8 +281,36 @@ const columns: TableColumn<OrderTable>[] = [
       )
     }
   },
-  { accessorKey: 'customer', header: 'Customer' },
-  { accessorKey: 'totalAmount', header: 'Total Amount',
+  { accessorKey: 'customer', header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Customer',
+        icon: isSorted 
+          ? isSorted === 'asc' 
+            ? 'i-lucide-arrow-up-narrow-wide' 
+            : 'i-lucide-arrow-down-wide-narrow' 
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    } },
+  { accessorKey: 'totalAmount', header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Total Amount',
+        icon: isSorted 
+          ? isSorted === 'asc' 
+            ? 'i-lucide-arrow-up-narrow-wide' 
+            : 'i-lucide-arrow-down-wide-narrow' 
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     meta: {
       class: {
         th: 'text-right font-semibold',
@@ -249,7 +323,21 @@ const columns: TableColumn<OrderTable>[] = [
       return h(UBadge, { class: 'text-base',color: 'info', variant: 'subtle' }, () => formatted)
     }
    }, 
-{ accessorKey: 'totalCost', header: 'Total Cost',
+{ accessorKey: 'totalCost', header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Total Cost',
+        icon: isSorted 
+          ? isSorted === 'asc' 
+            ? 'i-lucide-arrow-up-narrow-wide' 
+            : 'i-lucide-arrow-down-wide-narrow' 
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     meta: {
       class: {
         th: 'text-right font-semibold',
@@ -276,7 +364,21 @@ const columns: TableColumn<OrderTable>[] = [
     }
    },
    { accessorKey: 'orderItems', header: 'Order Items' },
-  { accessorKey: 'createdAt', header: 'Created At',
+  { accessorKey: 'createdAt', header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Created At',
+        icon: isSorted 
+          ? isSorted === 'asc' 
+            ? 'i-lucide-arrow-up-narrow-wide' 
+            : 'i-lucide-arrow-down-wide-narrow' 
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     cell: ({ row }) => {
       const createdAt = new Date(row.getValue('createdAt'))
       const formatted = formatDateTime(createdAt)
@@ -405,19 +507,21 @@ function getRowItems(row: Row<OrderTable>) {
       <div v-if="error" class="p-4 text-error italic">Error: {{ error?.message }}</div>
 
 
-      <UTable 
-      v-else 
-      ref="table"
-      v-model:column-visibility="columnVisibility" 
-      sticky="header"
-      :data="dataTable" 
-      :columns="columns"
-      :loading="status === 'pending'" 
-      class="flex-1" >
-      <template #loading>
-        <UIcon name="i-lucide-loader" class="animate-spin" /> Loading ...
-      </template>
-    </UTable>
+      <ClientOnly v-else>
+        <UTable 
+        ref="table"
+        v-model:column-visibility="columnVisibility" 
+        v-model:sorting="sorting" 
+        sticky="header"
+        :data="dataTable" 
+        :columns="columns"
+        :loading="status === 'pending'" 
+        class="flex-1" >
+        <template #loading>
+          <UIcon name="i-lucide-loader" class="animate-spin" /> Loading ...
+        </template>
+      </UTable>
+      </ClientOnly>
 
       <div class="flex items-center justify-center gap-6  text-sm text-gray-600">
         <div class="flex items-center gap-2">

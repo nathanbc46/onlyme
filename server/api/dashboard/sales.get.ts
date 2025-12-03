@@ -63,7 +63,7 @@ export default defineEventHandler(async () => {
       }),
       prisma.order.aggregate({
         _sum: { totalCost: true },
-        where: { createdAt: { gte: startLastMonth.toDate(), lte: endOfCurrentPeriod.toDate() }, status: 'CLOSED' },
+        where: { createdAt: { gte: startOfMonth.toDate(), lte: endOfCurrentPeriod.toDate() }, status: 'CLOSED' },
       }),
     ])
 
@@ -75,7 +75,7 @@ export default defineEventHandler(async () => {
     // ===== 6️⃣ ยอดขายเฉลี่ยต่อวันในเดือนนี้ =====
     const daysPassed = dayOfMonth
     const avgDailySales = daysPassed > 0 ? thisMonthSales / daysPassed : 0
-    const avgDailyProfit = daysPassed > 0 ? (thisMonthSales-thisMonthCostVal) / daysPassed : 0
+    const avgDailyProfit = daysPassed > 0 ? (thisMonthSales - thisMonthCostVal) / daysPassed : 0
 
 
     // ===== 3️⃣ ยอดขายปีนี้ vs ปีที่แล้ว (ช่วงวันเดียวกัน) =====
@@ -119,33 +119,33 @@ export default defineEventHandler(async () => {
     const start7DaysAgo = now.subtract(6, 'day').startOf('day').toDate()
     const end7Days = now.endOf('day').toDate()
 
-   /*  const last7DaysOrders = await prisma.order.findMany({
-      where: {
-        status: 'CLOSED',
-        createdAt: { gte: start7DaysAgo, lte: end7Days },
-      },
-      select: {
-        totalAmount: true,
-        createdAt: true,
-      },
-    })
-
-    // รวมยอดต่อวัน
-    const dailySalesMap = new Map<string, number>()
-    for (let i = 0; i < 7; i++) {
-      const date = now.subtract(6 - i, 'day').format('YYYY-MM-DD')
-      dailySalesMap.set(date, 0)
-    }
-
-    for (const order of last7DaysOrders) {
-      const date = dayjs(order.createdAt).tz().format('YYYY-MM-DD')
-      dailySalesMap.set(date, (dailySalesMap.get(date) || 0) + Number(order.totalAmount))
-    }
-
-    const last7DaysSales = Array.from(dailySalesMap.entries()).map(([date, total]) => ({
-      date,
-      total,
-    })) */
+    /*  const last7DaysOrders = await prisma.order.findMany({
+       where: {
+         status: 'CLOSED',
+         createdAt: { gte: start7DaysAgo, lte: end7Days },
+       },
+       select: {
+         totalAmount: true,
+         createdAt: true,
+       },
+     })
+ 
+     // รวมยอดต่อวัน
+     const dailySalesMap = new Map<string, number>()
+     for (let i = 0; i < 7; i++) {
+       const date = now.subtract(6 - i, 'day').format('YYYY-MM-DD')
+       dailySalesMap.set(date, 0)
+     }
+ 
+     for (const order of last7DaysOrders) {
+       const date = dayjs(order.createdAt).tz().format('YYYY-MM-DD')
+       dailySalesMap.set(date, (dailySalesMap.get(date) || 0) + Number(order.totalAmount))
+     }
+ 
+     const last7DaysSales = Array.from(dailySalesMap.entries()).map(([date, total]) => ({
+       date,
+       total,
+     })) */
 
     const last7Days = await prisma.$queryRawUnsafe(`
       SELECT 
@@ -171,7 +171,7 @@ export default defineEventHandler(async () => {
       topProducts.map(async (p) => {
         const product = await prisma.product.findUnique({
           where: { id: p.productId },
-          select: { id: true, name: true},
+          select: { id: true, name: true },
         })
         return {
           id: product?.id,
@@ -197,7 +197,7 @@ export default defineEventHandler(async () => {
       topCustomers.map(async (m) => {
         const customer = await prisma.customer.findUnique({
           where: { id: m.customerId },
-          select: { id: true, name: true},
+          select: { id: true, name: true },
         })
         return {
           id: customer?.id,
