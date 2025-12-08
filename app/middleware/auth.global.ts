@@ -1,10 +1,15 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   // ดึง session โดยให้ส่ง cookie ไปด้วย
-  const session = await authClient.getSession({
-    fetchOptions: {
-      headers: useRequestHeaders(["cookie"]) // สำคัญ!!
-    }
-  });
+  let session;
+  try {
+      session = await authClient.getSession({
+          fetchOptions: {
+              headers: useRequestHeaders(["cookie"]) // สำคัญ!!
+          }
+      });
+  } catch (error) {
+      session = { data: null, error: error };
+  }
 
   // console.log(session);
 

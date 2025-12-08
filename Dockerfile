@@ -13,7 +13,7 @@ COPY prisma ./prisma
 
 # Copy เฉพาะไฟล์ package.json และ package-lock.json
 # ส่วนนี้ช่วย Cache ทำให้การรันซ้ำเมื่อโค้ดเปลี่ยนแปลง จะไม่รัน `npm install` ซ้ำหลายครั้ง จนกว่าจะมี Package ที่เปลี่ยนแปลงไป
-COPY package*.json ./
+
 
 # Install dependencies (prisma generate will run now)
 RUN pnpm i
@@ -35,9 +35,9 @@ COPY --from=build /app/.output/ ./
 COPY --from=build /app/node_modules ./node_modules
 
 # Environment variables
-ENV PORT=80
+ENV PORT=3000
 ENV HOST=0.0.0.0
 
-EXPOSE 80
+EXPOSE 3000
 
 CMD ["node", "server/index.mjs"]
