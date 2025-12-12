@@ -1,7 +1,5 @@
-interface ProductCategory {
-     id?: string
-    name: string
-}
+import type { ProductCategory } from '~/types/product-category'
+
 export function useProductCategories() {
     async function createProductCategory(data: ProductCategory) {
         try

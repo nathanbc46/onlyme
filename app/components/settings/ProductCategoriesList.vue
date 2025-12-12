@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-interface ProductCategory {
-    id: string
-    name: string
-}
+import type { ProductCategory } from '~/types/product-category'
 
 withDefaults(defineProps<{
     productCategories: ProductCategory[]
@@ -102,7 +99,7 @@ async function onDeleteProductCategory(id: string) {
                     mode="edit" title="Edit product category"
                         :name="productCategory.name" description="Edit a new product category"
                         :loading-submit="loadingUpdate"
-                        @submit="onUpdateProductCategory(productCategory.id, $event)" />
+                        @submit="onUpdateProductCategory(productCategory.id!, $event)" />
                 </div>
             </li>
         </ul>
@@ -114,6 +111,6 @@ async function onDeleteProductCategory(id: string) {
     v-model:open="isDeleteModalOpen" mode="delete" title="Delete product"
       :description="'Are you sure you want to delete this product \'' + selectedProduct?.name + '\' ?'"
       :loading="loadingDelete"
-      @confirm="selectedProduct && onDeleteProductCategory(selectedProduct.id)" />
+      @confirm="selectedProduct && onDeleteProductCategory(selectedProduct.id!)" />
     </ClientOnly>
 </template>

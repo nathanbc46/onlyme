@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<{
 })
 
 const schema = z.object({
-    name: z.string().min(2, 'Too short').optional()
+    name: z.string().min(2, 'Too short')
 })
 
 type Schema = z.output<typeof schema>

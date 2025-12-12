@@ -2,6 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/vue-table'
 import { debounce } from 'lodash-es'
+import type { Order } from '~/types/order'
 const { deleteOrder, updateOrderStatus } = useOrder()
 // const { start, finish } = useLoadingIndicator()
 // import { useDebounceFn } from '@vueuse/core'
@@ -13,27 +14,27 @@ const UDropdownMenu = resolveComponent('UDropdownMenu')
 
 const toast = useToast()
 
-interface Order {
-  id: string
-  orderNumber: string
-  totalAmount: number | string
-  totalCost: number | string | null
-  status: string
-  createdAt: string
-  customer: {
-    id: string
-    name: string
-  }
-  orderItems: {
-    id: string
-    quantity: number | string
-    price: number | string
-    product: {
-      id: string
-      name: string
-    }
-  }[]
-}
+// interface Order {
+//   id: string
+//   orderNumber: string
+//   totalAmount: number | string
+//   totalCost: number | string | null
+//   status: string
+//   createdAt: string
+//   customer: {
+//     id: string
+//     name: string
+//   }
+//   orderItems: {
+//     id: string
+//     quantity: number | string
+//     price: number | string
+//     product: {
+//       id: string
+//       name: string
+//     }
+//   }[]
+// }
 
 const orders = ref<Order[]>([])
 const meta = ref<{ total: number , page: number , pageSize: number , totalPages: number}>()
@@ -182,26 +183,26 @@ async function onDeleteOrder(id: string) {
 }
 
 interface OrderTable {
-  id: string
+  id: string | undefined;
   orderNumber: string
   totalAmount: number | string
   totalCost: number | string | null
   status: string
   profit: number
-  createdAt: string
+  createdAt: string | undefined
   customer: string
   orderItems: string
 }
 
 const dataTable = computed<OrderTable[]>(() => {
   return orders.value?.map((order: Order) => ({
-    id: order.id,
+    id: order.id ?? '',
     orderNumber: order.orderNumber,
     totalAmount: order.totalAmount,
     totalCost: order.totalCost,
     status: order.status,
     profit: Number(order.totalAmount) - Number(order.totalCost),
-    createdAt: order.createdAt,
+    createdAt: order.createdAt ?? '',
     customer: order.customer.name,
     orderItems: order.orderItems
       .map((item: { quantity: number | string; product: { name: string } }) => `${item.product.name} (${item.quantity})`)
@@ -553,7 +554,7 @@ function getRowItems(row: Row<OrderTable>) {
     v-model:open="isDeleteModalOpen" mode="delete" title="Delete order"
       :description="'Are you sure you want to delete this order \'' + selectedOrder?.orderNumber + ' - (' + selectedOrder?.customer.name + ')\' ?'"
       :loading="loadingDelete"
-      @confirm="selectedOrder && onDeleteOrder(selectedOrder.id)" />
+      @confirm="selectedOrder && onDeleteOrder(selectedOrder.id!)" />
 
     <SettingsConfirmModal 
     v-model:open="isCancelModalOpen" mode="delete" :title="`Change order status to ${newOrderStatus}` "
@@ -561,7 +562,7 @@ function getRowItems(row: Row<OrderTable>) {
       :loading="loadingDelete"
       :btn-color="newOrderStatus === 'CLOSED' ? 'success' : 'warning'"
       :btn-text="`Chang to ${newOrderStatus}` "
-      @confirm="selectedOrder && onStatusChange(selectedOrder.id,newOrderStatus)" />
+      @confirm="selectedOrder && onStatusChange(selectedOrder.id!,newOrderStatus)" />
 
     </template>
   </UDashboardPanel>

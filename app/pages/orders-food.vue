@@ -2,6 +2,8 @@
 import { ref, computed, nextTick } from 'vue'
 import type { SelectMenuItem } from '@nuxt/ui'
 import type { Product } from '~/types/product'
+import type { Order } from '~/types/order'
+import type { Customer } from '~/types/customer'
 
 const { getProducts } = useProduct()
 const { createCustomer } = useCustomer()
@@ -10,19 +12,25 @@ const { start, finish } = useLoadingIndicator()
 
 const { getSalesToday } = useDashboard()
 
+// --- ตะกร้า ---
+interface CartItem {
+  id: string
+  name: string
+  price: number
+  cost: number
+  qty: number
+  note?: string | null
+  _uid?: number
+}
+
 // const route = useRoute()
 const toast = useToast()
 const showReceipt = ref(false)
 const currentOrder = ref<Order>()
 
-interface Customer {
-  id: string
-  name: string
-  email?: string
-  phone?: string
-  description?: string
-  orders: Order[]
-}
+// interface Customer extends CustomerType {
+//   orders: Order[]
+// }
 
 // --- ลูกค้า ---
 // const selectedCustomerId = ref<string | null>(null)
@@ -92,18 +100,6 @@ async function addCustomer() {
 
 // --- เมนูอาหาร ---
 const search = ref('')
-// interface Products {
-//   id: string
-//   name: string
-//   price: number
-//   cost: number
-//   category: {
-//     id: string
-//     name: string
-//   }
-//   image?: string
-// }
-
 const data = ref<Product[]>([])
 const categories = ref<SelectMenuItem[]>([])
 const category = ref('all') // ค่าเริ่มต้นคือ 'all'
@@ -152,17 +148,6 @@ const filteredData = computed(() => {
     )
   }
 })
-
-// --- ตะกร้า ---
-interface CartItem {
-  id: string
-  name: string
-  price: number
-  cost: number
-  qty: number
-  note?: string | null
-  _uid?: number
-}
 
 const cart = ref<CartItem[]>([])
 let uidCounter = 0
@@ -219,31 +204,6 @@ const totalPrice = computed(() =>
 const totalCost = computed(() =>
   cart.value.reduce((sum, i) => sum + (i.cost || 0) * (i.qty || 0), 0)
 )
-
-interface Order {
-  id?: string
-  orderNumber: string
-  totalAmount: number | string
-  totalCost: number | string | null
-  status: string
-  remark?: string | null
-  customer: {
-    id: string
-    name: string
-  }
-  orderItems: {
-    id: string
-    quantity: number | string
-    price: number | string
-    remark?: string | null
-    product: {
-      id: string
-      name: string
-      image?: string | null
-      cost: number | string | null
-    }
-  }[]
-}
 
 const loadingSubmit = ref(false)
 const orderCart = ref<Order | null>()

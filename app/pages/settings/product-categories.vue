@@ -1,18 +1,10 @@
 <script lang="ts" setup>
 import { debounce } from 'lodash-es' // debounce คือ การ delays การทํางานของ function
+import type { ProductCategory } from '~/types/product-category'
 // const { start, finish } = useLoadingIndicator()
 const toast = useToast()
 
-interface ProductCategory {
-  name: string
-}
-
-interface ProductCategories {
-  name: string
-  id: string
-}
-
-const data = ref<ProductCategories[]>([])
+const data = ref<ProductCategory[]>([])
 const loading = ref(true)
 const error = ref<Error | null>(null)
 const loadingCreate = ref(false)
@@ -71,7 +63,7 @@ async function  getCategoriesList() {
   }  
 }
 
-async function onUpdated(productCategory: ProductCategories) {
+async function onUpdated(productCategory: ProductCategory) {
   const index = data.value.findIndex((item) => item.id === productCategory.id)
   data.value[index] = productCategory
 }
