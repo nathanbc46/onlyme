@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import type { Product } from '~/types/product'
 const fileRef = ref<HTMLInputElement>()
 
 const props = withDefaults(
@@ -10,17 +11,7 @@ const props = withDefaults(
     mode?: 'add' | 'edit'
     title?: string
     description?: string
-    product?: {
-      id: string
-      name: string
-      price: number
-      cost: number
-      image?: string
-      category: {
-        id: string
-        name: string
-      }
-    } | null,
+    product?: Product | null,
     categories?: { id: string; name: string }[]
   }>(),
   {

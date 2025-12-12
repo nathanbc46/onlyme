@@ -1,32 +1,13 @@
 <script lang="ts" setup>
 import { debounce } from 'lodash-es'
+import type { ProductInput, Product } from '~/types/product'
+
 const { createProduct, getProducts } = useProduct()
 const toast = useToast()
 const q = ref<string>('')
 
-interface Product {
-  id?: string
-  name: string
-  price: number
-  cost: number
-  categoryId: string
-  image?: string
-}
 
-interface Products {
-  id: string
-  name: string
-  price: number
-  cost: number
-  category: {
-    id: string
-    name: string
-  }
-  image?: string
-}
-
-
-const data = ref<Products[]>([]) // ✅ เริ่มต้นเป็น array เปล่า
+const data = ref<Product[]>([]) // ✅ เริ่มต้นเป็น array เปล่า
 const loading = ref(true)
 const loadingCreate = ref(false)
 const error = ref<Error | null>(null)
@@ -58,7 +39,7 @@ onMounted(() => {
 
 watch(q, debounce(getProductList, 300))
 
-async function onCreateProduct(formData: Product, imageFile?: File) {
+async function onCreateProduct(formData: ProductInput, imageFile?: File) {
   if (!formData) return
 
   //console.log('onCreateProduct', formData, imageFile)
@@ -132,7 +113,7 @@ async function onDeleted(id: string) {
   data.value.splice(index, 1)
 }
 
-async function onUpdated(product: Products) {
+async function onUpdated(product: Product) {
   //const index = data.value.findIndex((item) => item.id === product.id)
   data.value = data.value.map(p =>
     p.id === product.id ? product : p
@@ -142,7 +123,7 @@ async function onUpdated(product: Products) {
 }
 
 const isEditModalOpen = ref(false)
-const selectedProduct = ref<Products | null>(null)
+const selectedProduct = ref<Product | null>(null)
 
 const openEditModal = () => {
   isEditModalOpen.value = true

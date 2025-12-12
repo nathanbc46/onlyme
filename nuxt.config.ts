@@ -23,5 +23,8 @@ export default defineNuxtConfig({
     define: {
       "process.env.BETTER_AUTH_URL": JSON.stringify(process.env.BETTER_AUTH_URL),
     },
-  }
+  },
+  // typescript: {
+  //   typeCheck: true,
+  // },
 })

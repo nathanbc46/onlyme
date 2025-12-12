@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
 import type { SelectMenuItem } from '@nuxt/ui'
+import type { Product } from '~/types/product'
 
 const { getProducts } = useProduct()
 const { createCustomer } = useCustomer()
@@ -91,19 +92,19 @@ async function addCustomer() {
 
 // --- เมนูอาหาร ---
 const search = ref('')
-interface Products {
-  id: string
-  name: string
-  price: number
-  cost: number
-  category: {
-    id: string
-    name: string
-  }
-  image?: string
-}
+// interface Products {
+//   id: string
+//   name: string
+//   price: number
+//   cost: number
+//   category: {
+//     id: string
+//     name: string
+//   }
+//   image?: string
+// }
 
-const data = ref<Products[]>([])
+const data = ref<Product[]>([])
 const categories = ref<SelectMenuItem[]>([])
 const category = ref('all') // ค่าเริ่มต้นคือ 'all'
 

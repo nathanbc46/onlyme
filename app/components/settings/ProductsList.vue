@@ -4,6 +4,7 @@ import type { TableColumn } from '@nuxt/ui'
 import type { Row, Column } from '@tanstack/vue-table'
 import { upperFirst } from 'scule'
 import pica from 'pica'
+import type { ProductInput, Product } from '~/types/product'
 
 const { $supabase } = useNuxtApp() 
 const file = ref<File | null>(null)
@@ -22,29 +23,8 @@ const columnVisibility = ref({
   id: false // ซ่อนคอลัมน์ id
 })
 
-
-interface Products {
-  id: string
-  name: string
-  price: number
-  cost: number
-  category: {
-    id: string
-    name: string
-  }
-  image?: string
-}
-
-interface ProductForm {
-  name: string
-  price: number
-  cost: number
-  categoryId: string
-  image?: string
-}
-
 const props = withDefaults(defineProps<{
-  products?: Products[]
+  products?: Product[]
   loadingData?: boolean,
   categories?: { id: string; name: string }[]
 }>(), {
@@ -57,11 +37,11 @@ const emit = defineEmits(['update', 'delete'])
 
 const isEditModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
-const selectedProduct = ref<Products | null>(null)
+const selectedProduct = ref<Product | null>(null)
 const loadingUpdate = ref(false)
 const loadingDelete = ref(false)
 
-const openEditModal = (product: Products) => {
+const openEditModal = (product: Product) => {
   selectedProduct.value = product
   isEditModalOpen.value = true
 }
@@ -71,7 +51,7 @@ const closeEditModal = () => {
   selectedProduct.value = null
 }
 
-const openDeleteModal = (product: Products) => {
+const openDeleteModal = (product: Product) => {
   selectedProduct.value = product
   isDeleteModalOpen.value = true
 }
@@ -183,7 +163,7 @@ const deleteImage = async (path: string) => {
 }
 
 const updatedRowId = ref<string | null>(null)
-async function onUpdateProduct(oldImage: string | null | undefined, id: string | undefined, formData: ProductForm, imageFile?: File) {
+async function onUpdateProduct(oldImage: string | null | undefined, id: string | undefined, formData: ProductInput, imageFile?: File) {
   //console.log('onUpdateProduct', id, formData, imageFile, oldImage) 
 
   if (!id) return

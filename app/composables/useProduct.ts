@@ -1,23 +1,5 @@
-interface Product {
-    id?: string
-    name: string
-    price: number
-    cost: number
-    image?: string | null
-    categoryId: string
-}
+import type { ProductInput, Product } from '~/types/product'
 
-interface Products {
-    id: string
-    name: string
-    price: number
-    cost: number
-    category: {
-        id: string
-        name: string
-    }
-    image?: string
-}
 
 export function useProduct() {
 
@@ -25,7 +7,7 @@ export function useProduct() {
         try
         {
             const q = key ? key : ''
-            const products = await $fetch<Products[]>('/api/products?k=' + q)
+            const products = await $fetch<Product[]>('/api/products?k=' + q)
             return products
         } catch (error) {
             throw createError({
@@ -35,10 +17,10 @@ export function useProduct() {
         }
     }
 
-    async function createProduct(data: Product) {
+    async function createProduct(data: ProductInput) {
         try
         {
-            const product = await $fetch<Products>('/api/products', {
+            const product = await $fetch<Product>('/api/products', {
                 method: 'POST',
                 body: data
             })
@@ -54,7 +36,7 @@ export function useProduct() {
     async function deleteProduct(id: string) {
         try
         {
-            const product = await $fetch<{data: Products}>(`/api/products/${id}`, {
+            const product = await $fetch<{data: Product}>(`/api/products/${id}`, {
                 method: 'DELETE'
             })
             return product.data
@@ -66,10 +48,10 @@ export function useProduct() {
         }
     }
 
-    async function updateProduct(id: string, data: Product) {
+    async function updateProduct(id: string, data: ProductInput) {
         try
         {
-            const product = await $fetch<{data: Products}>(`/api/products/${id}`, {
+            const product = await $fetch<{data: Product}>(`/api/products/${id}`, {
                 method: 'PUT',
                 body: data
             })

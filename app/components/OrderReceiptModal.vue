@@ -36,7 +36,7 @@ const formattedDate = computed(() => {
 const receiptText = computed(() => {
   const lines: string[] = []
   //lines.push(`🧾 คำสั่งซื้อ #${props.order.id}`)
-  lines.push(`ลูกค้า: คุณ ${props.order.customer?.name || '-'}`)
+  // lines.push(`ลูกค้า: คุณ ${props.order.customer?.name || '-'}`)
   //if (props.order.customer?.phone) lines.push(`โทร: ${props.order.customer.phone}`)
   //lines.push('')
   for (const it of props.order.orderItems || []) {
