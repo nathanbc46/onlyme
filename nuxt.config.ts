@@ -24,7 +24,12 @@ export default defineNuxtConfig({
       "process.env.BETTER_AUTH_URL": JSON.stringify(process.env.BETTER_AUTH_URL),
     },
   },
-  // typescript: {
-  //   typeCheck: true,
-  // },
+  typescript: {
+    typeCheck: false
+  },
+  nitro: {
+    externals: {
+      external: ["@prisma/client"],
+    },
+  },
 })
