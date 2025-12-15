@@ -89,20 +89,51 @@ async function onDeleteProductCategory(id: string) {
             <UIcon name="i-lucide-loader" class="animate-spin" /> Loading...
         </div>
         <ul v-else-if="productCategories.length" class="divide-y divide-default">
-            <li 
-            v-for="productCategory in productCategories" :key="productCategory.id"
-                class="flex items-center justify-between gap-3 py-1 px-4 sm:px-6">
-                <div class="flex items-center gap-3 min-w-0">{{ productCategory.name }}</div>
-                <div class="flex items-center gap-3">
-                    <UButton color="error" variant="subtle" size="xs" icon="i-lucide-trash" @click="openDeleteModal(productCategory)" />
-                    <SettingsProductCategoriesModal 
-                    mode="edit" title="Edit product category"
-                        :name="productCategory.name" description="Edit a new product category"
-                        :loading-submit="loadingUpdate"
-                        @submit="onUpdateProductCategory(productCategory.id!, $event)" />
+            <li
+                v-for="productCategory in productCategories"
+                :key="productCategory.id"
+                class="
+                grid grid-cols-12 gap-3
+                items-center
+                py-2 px-4 sm:px-6
+                "
+            >
+                <!-- ชื่อหมวด -->
+                <div class="col-span-12 sm:col-span-6 truncate">
+                {{ productCategory.name }}
+                </div>
+
+                <!-- สถานะ -->
+                <div class="col-span-6 sm:col-span-3 text-sm">
+                <span
+                    :class="productCategory.active ? 'text-green-600' : 'text-gray-400'"
+                >
+                    {{ productCategory.active ? 'Active' : 'Inactive' }}
+                </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="col-span-6 sm:col-span-3 flex justify-end gap-2">
+                <UButton
+                    color="error"
+                    variant="subtle"
+                    size="xs"
+                    icon="i-lucide-trash"
+                    @click="openDeleteModal(productCategory)"
+                />
+
+                <SettingsProductCategoriesModal
+                    mode="edit"
+                    title="Edit product category"
+                    :name="productCategory.name"
+                    description="Edit a new product category"
+                    :loading-submit="loadingUpdate"
+                    @submit="onUpdateProductCategory(productCategory.id!, $event)"
+                />
                 </div>
             </li>
-        </ul>
+            </ul>
+
         <div v-else class="p-4 text-muted italic">
             No product categories
         </div>

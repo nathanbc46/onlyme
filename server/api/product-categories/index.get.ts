@@ -1,29 +1,38 @@
-import { Prisma } from '@prisma/client'
+import { Prisma } from "@prisma/client";
 export default defineEventHandler(async (event) => {
-    try {
-        const { k } = getQuery(event)
+  try {
+    const { k, active } = getQuery(event);
 
-        const where =
-            typeof k === 'string' && k.trim() !== ''
-                ? {
-                    name: {
-                        contains: k,
-                        mode: Prisma.QueryMode.insensitive, // ✅ ต้องแบบนี้เท่านั้น
-                    },
-                }
-                : undefined
-
-        const productCategories = await prisma.productCategory.findMany({
-            where,
-            orderBy: {
-                name: 'asc',
+    const where: Prisma.ProductCategoryWhereInput = {
+      ...(typeof k === "string" &&
+        k.trim() !== "" && {
+          OR: [
+            {
+              name: {
+                contains: k,
+                mode: Prisma.QueryMode.insensitive,
+              },
             },
-        })
-        return productCategories
-    } catch (error) {
-        throw createError({
-            statusCode: 400,
-            statusMessage: (error as Error).message
-        })
-    }
-})
+          ],
+        }),
+
+      ...(typeof active === "string" &&
+        active.trim() !== "" && {
+          active: active === "true",
+        }),
+    };
+
+    const productCategories = await prisma.productCategory.findMany({
+      where: where,
+      orderBy: {
+        name: "asc",
+      },
+    });
+    return productCategories;
+  } catch (error) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: (error as Error).message,
+    });
+  }
+});

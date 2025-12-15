@@ -105,7 +105,7 @@ const categories = ref<SelectMenuItem[]>([])
 const category = ref('all') // ค่าเริ่มต้นคือ 'all'
 
 // ดึงข้อมูลหมวดหมู่จาก API
-const { data: categoriesData, status: statusCategories } = await useFetch<{ id: string; name: string }[]>('/api/product-categories?k=')
+const { data: categoriesData, status: statusCategories } = await useFetch<{ id: string; name: string }[]>('/api/product-categories?k=&active=true')
 if (categoriesData.value) {
   categories.value = [
     { label: 'All', value: 'all' },
