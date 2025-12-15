@@ -3,11 +3,11 @@ import type { ProductInput, Product } from '~/types/product'
 
 export function useProduct() {
 
-    async function getProducts(key?: string) {
+    async function getProducts(k: string = '', active: string = '') {
         try
         {
-            const q = key ? key : ''
-            const products = await $fetch<Product[]>('/api/products?k=' + q)
+            const q = k ? k : ''
+            const products = await $fetch<Product[]>('/api/products?k=' + q + '&active=' + active)
             return products
         } catch (error) {
             throw createError({

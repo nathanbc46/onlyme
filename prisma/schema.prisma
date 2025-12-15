@@ -82,6 +82,7 @@ model ProductCategory {
   updatedAt DateTime  @updatedAt
   products  Product[]
   user      User      @relation(fields: [userId], references: [id], onDelete: NoAction)
+  active    Boolean   @default(true)
 
   @@map("product_category")
 }
@@ -99,6 +100,7 @@ model Product {
   orderItems OrderItem[]
   category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
   user       User            @relation(fields: [userId], references: [id], onDelete: NoAction)
+  active     Boolean         @default(true)
 
   @@map("product")
 }
@@ -148,6 +150,7 @@ model OrderItem {
   cost      Decimal? @default(0)
   total     Decimal? @default(0)
   totalItemCost Decimal? @default(0)
+  totalcost     Decimal? @default(0)
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: NoAction)
 

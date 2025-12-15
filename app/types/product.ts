@@ -8,6 +8,7 @@ export interface Product {
     name: string
   }
   image?: string
+  active?: boolean
 }
 
 export interface ProductInput {

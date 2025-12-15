@@ -121,7 +121,7 @@ const loadingProducts = ref(false)
 try {
   loadingProducts.value = true
   start({ force: true })
-  const products = await getProducts()
+  const products = await getProducts('', 'true')
   if (Array.isArray(products)) {
     data.value = products
   } else {

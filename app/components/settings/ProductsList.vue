@@ -255,6 +255,7 @@ type ProductsTable = {
   cost: number
   category: string
   image?: string
+  active?: boolean
 }
 
 // console.log('products', props.products)
@@ -268,7 +269,8 @@ const productsTable = computed<ProductsTable[]>(() => {
     price: product.price,
     cost: product.cost,
     category: product.category.name,
-    image: product?.image
+    image: product?.image,
+    active: product?.active
   }))
 })
 
@@ -339,6 +341,23 @@ const columns: TableColumn<ProductsTable>[] = [
       const formatted = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(cost)
         return h('div', { class: 'text-right w-full' },
         h(UBadge, { class: ['text-base',getCellClass(row)], variant: 'subtle', color: 'warning' },  () => formatted)
+      )
+    }
+  },
+  {
+    accessorKey: 'active',
+    header: ({ column }) => getHeader(column, 'Active'),
+    cell: ({ row }) => {
+      const active = row.getValue('active')
+      return h('div', { class: 'text-center w-full' },
+        h(UButton, {
+          icon: active ? 'i-lucide-check' : 'i-lucide-x',
+          color: active ? 'success' : 'danger',
+          variant: 'ghost',
+          class: 'w-full',
+          'aria-label': `Active ${row.getValue('name')}`,
+          // @click: "onActive(row.getValue('id'))"
+        })
       )
     }
   },
