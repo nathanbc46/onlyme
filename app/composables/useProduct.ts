@@ -64,10 +64,27 @@ export function useProduct() {
         }
     }
 
+    async function activeProduct(id: string, active: boolean) {
+        try
+        {
+            const product = await $fetch<{ data: Product }>('/api/products/active', {
+                method: 'PATCH',
+                body: { id, active }
+            })
+            return product.data
+        } catch (error) {
+            throw createError({
+                statusCode: 400,
+                statusMessage: (error as Error).message
+            })
+        }
+    }
+
     return {
         getProducts,
         createProduct,
         deleteProduct,
-        updateProduct
+        updateProduct,
+        activeProduct
     }
 }

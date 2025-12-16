@@ -62,10 +62,27 @@ export function useProductCategories() {
         }
     }
 
+    async function activeProductCategory(id: string, active: boolean) {
+            try
+            {
+                const productCategory = await $fetch<{ data: ProductCategory }>('/api/product-categories/active', {
+                    method: 'PATCH',
+                    body: { id, active }
+                })
+                return productCategory.data
+            } catch (error) {
+                throw createError({
+                    statusCode: 400,
+                    statusMessage: (error as Error).message
+                })
+            }
+        }
+
     return {
         createProductCategory,
         getProductCategories,
         updateProductCategory,
-        deleteProductCategory
+        deleteProductCategory,
+        activeProductCategory
     }
 }

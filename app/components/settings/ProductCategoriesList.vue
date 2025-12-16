@@ -15,6 +15,18 @@ const isDeleteModalOpen = ref(false)
 const selectedProduct = ref<ProductCategory | null>(null)
 const loadingUpdate = ref(false)
 const loadingDelete = ref(false)
+const isActiveModalOpen = ref(false)
+const loadingActive = ref(false)
+
+const openActiveModal = (product: ProductCategory) => {
+  selectedProduct.value = product
+  isActiveModalOpen.value = true
+}
+
+const closeActiveModal = () => {
+  isActiveModalOpen.value = false
+  selectedProduct.value = null
+}
 
 const openDeleteModal = (product: ProductCategory) => {
   selectedProduct.value = product
@@ -27,8 +39,32 @@ const closeDeleteModal = () => {
 }
 
 
-const { updateProductCategory, deleteProductCategory } = useProductCategories()
+const { updateProductCategory, deleteProductCategory, activeProductCategory } = useProductCategories()
 const toast = useToast()
+
+async function onActiveProductCategory(id: string) {
+    try {
+        loadingActive.value = true
+        const data = await activeProductCategory(id, !selectedProduct.value?.active)
+        toast.add({
+        title: 'Success',
+        description: 'Product category ' + data?.name + ' ' + (data?.active ? 'activated' : 'deactivated') + ' successfully',
+        color: 'success'
+        })
+
+        closeActiveModal()
+        emit('update', data)
+    } catch (error) {
+        console.error(error)
+        toast.add({
+        title: 'Error',
+        description: (error as Error).message || 'Failed to active product category',
+        color: 'error'
+        })
+    } finally {
+        loadingActive.value = false
+    }
+}
 
 async function onUpdateProductCategory(id: string, formData: ProductCategory) {
     if (!formData.name) return
@@ -108,7 +144,13 @@ async function onDeleteProductCategory(id: string) {
                 <span
                     :class="productCategory.active ? 'text-green-600' : 'text-gray-400'"
                 >
-                    {{ productCategory.active ? 'Active' : 'Inactive' }}
+                    <UButton
+                        :color="productCategory.active ? 'success' : 'neutral'"
+                        variant="soft"
+                        :icon="productCategory.active ? 'i-lucide-check' : 'i-lucide-x'"
+                        :aria-label="productCategory.active ? 'Activate' : 'Deactivate'"
+                        @click="openActiveModal(productCategory)"
+                    />
                 </span>
                 </div>
 
@@ -143,5 +185,14 @@ async function onDeleteProductCategory(id: string) {
       :description="'Are you sure you want to delete this product \'' + selectedProduct?.name + '\' ?'"
       :loading="loadingDelete"
       @confirm="selectedProduct && onDeleteProductCategory(selectedProduct.id!)" />
+
+    <SettingsConfirmModal 
+    v-model:open="isActiveModalOpen" mode="delete" title="Active product category"
+      :description="'Are you sure you want to ' + (selectedProduct?.active ? 'deactivate' : 'activate') + ' this product category \'' + selectedProduct?.name + '\' ?'"
+      :loading="loadingActive"
+      :btn-color="selectedProduct?.active ? 'neutral' : 'primary'"
+      :btn-text="selectedProduct?.active ? 'Deactivate' : 'Activate'"
+      @confirm="selectedProduct && onActiveProductCategory(selectedProduct.id!)" />
+
     </ClientOnly>
 </template>

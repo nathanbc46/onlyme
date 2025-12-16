@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import type { Product } from '~/types/product'
 
+const toast = useToast()
+
 const { data: products, error } = await useFetch<Product[]>(
   '/api/products?active=true',
   { method: 'GET' }
@@ -40,7 +42,11 @@ const copyText = computed(() => {
 /** 🔹 กดปุ่ม copy */
 const copyToClipboard = async () => {
   await navigator.clipboard.writeText(copyText.value)
-  alert('คัดลอกเมนูเรียบร้อยแล้ว')
+  toast.add({
+    title: 'Success',
+    description: 'Menu copied to clipboard',
+    color: 'success'
+  })
 }
 </script>
 

@@ -6,6 +6,8 @@ import { upperFirst } from 'scule'
 import pica from 'pica'
 import type { ProductInput, Product } from '~/types/product'
 
+const { activeProduct } = useProduct()
+
 const { $supabase } = useNuxtApp() 
 const file = ref<File | null>(null)
 const fileUrl = ref<string | null>(null)
@@ -40,6 +42,19 @@ const isDeleteModalOpen = ref(false)
 const selectedProduct = ref<Product | null>(null)
 const loadingUpdate = ref(false)
 const loadingDelete = ref(false)
+const loadingActive = ref(false)
+
+const isActiveModalOpen = ref(false)
+
+const openActiveModal = (product: Product) => {
+  selectedProduct.value = product
+  isActiveModalOpen.value = true
+}
+
+const closeActiveModal = () => {
+  isActiveModalOpen.value = false
+  selectedProduct.value = null
+}
 
 const openEditModal = (product: Product) => {
   selectedProduct.value = product
@@ -59,6 +74,30 @@ const openDeleteModal = (product: Product) => {
 const closeDeleteModal = () => {
   isDeleteModalOpen.value = false
   selectedProduct.value = null
+}
+
+async function onActiveProduct(id: string) {
+  if (!id) return
+  try {
+    loadingActive.value = true
+    const data = await activeProduct(id, !selectedProduct.value?.active)
+    toast.add({
+      title: 'Success',
+      description: 'Product ' + data?.name + ' ' + (data?.active ? 'activated' : 'deactivated') + ' successfully',
+      color: 'success'
+    })
+    emit('update', data)
+    closeActiveModal()
+  } catch (error) {
+    console.error(error)
+    toast.add({
+      title: 'Error',
+      description: (error as Error).message || 'Failed to activate/deactivate product',
+      color: 'error'
+    })
+  } finally {
+    loadingActive.value = false
+  }
 }
 
 async function onDeleteProduct(id: string) {
@@ -111,6 +150,30 @@ async function resizeImage(imageFile: File) {
 
   return new File([blob], imageFile.name, { type: imageFile.type })
 }
+
+// async function onActive(id: string, active: boolean) {
+//   if (!id) return
+//   try {
+//     loadingActive.value = true
+//     const data = await activeProduct(id, active)
+//     toast.add({
+//       title: 'Success',
+//       description: 'Product ' + data?.name + ' active successfully',
+//       color: 'success'
+//     })
+//     emit('update', id)
+//     closeActiveModal()
+//   } catch (error) {
+//     console.error(error)
+//     toast.add({
+//       title: 'Error',
+//       description: (error as Error).message || 'Failed to active product',
+//       color: 'error'
+//     })
+//   } finally {
+//     loadingActive.value = false
+//   }
+// }
 
 const uploadFile = async () => {
   if (!file.value) return alert('กรุณาเลือกไฟล์')
@@ -353,10 +416,10 @@ const columns: TableColumn<ProductsTable>[] = [
         h(UButton, {
           icon: active ? 'i-lucide-check' : 'i-lucide-x',
           color: active ? 'success' : 'danger',
-          variant: 'ghost',
-          class: 'w-full',
+          variant: 'soft',
+          // class: 'w-full',
           'aria-label': `Active ${row.getValue('name')}`,
-          // @click: "onActive(row.getValue('id'))"
+           onClick: () => openActiveModal(props.products.find(p => p.id === row.getValue('id'))!)
         })
       )
     }
@@ -602,5 +665,13 @@ const globalFilter = ref('')
       :description="'Are you sure you want to delete this product \'' + selectedProduct?.name + '\' ?'"
       :loading="loadingDelete"
       @confirm="selectedProduct && onDeleteProduct(selectedProduct.id)" />
+
+    <SettingsConfirmModal 
+    v-model:open="isActiveModalOpen" mode="delete" title="Active product"
+      :description="'Are you sure you want to ' + (selectedProduct?.active ? 'deactivate' : 'activate') + ' this product \'' + selectedProduct?.name + '\' ?'"
+      :loading="loadingActive"
+      :btn-color="selectedProduct?.active ? 'neutral' : 'primary'"
+      :btn-text="selectedProduct?.active ? 'Deactivate' : 'Activate'"
+      @confirm="selectedProduct && onActiveProduct(selectedProduct.id)" />
   </div>
 </template>

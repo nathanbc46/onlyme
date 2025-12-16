@@ -818,7 +818,7 @@ const open = ref(false)
                 :disabled="cart.length === 0 || selectedCustomerId.valueOf() === ''" class="flex-2"
                 :loading="loadingSubmit"
                 color="primary" block @click="confirmOrder">
-                <span v-if="loadingSubmit"><UIcon name="i-lucide-loader" spin /> กําลังสร้าง...</span>
+                <span v-if="loadingSubmit"> กําลังสร้าง...</span>
                 <span v-else><UIcon name="i-lucide-list-check" /> สรุปคำสั่งซื้อ</span>
               </UButton>
 
