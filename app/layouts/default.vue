@@ -29,7 +29,7 @@ const links: NavigationMenuItem[][] = [[{
   }
 },
 {
-  label: 'Reports',
+  label: 'Orders List',
   icon: 'i-lucide-chart-bar',
   to: '/reports',
   onSelect: () => {
@@ -40,6 +40,14 @@ const links: NavigationMenuItem[][] = [[{
   label: 'Customers',
   icon: 'i-lucide-users',
   to: '/customers',
+  onSelect: () => {
+    open.value = false
+  }
+},
+{
+  label: 'Bi Report',
+  icon: 'i-lucide-pie-chart',
+  to: '/bi',
   onSelect: () => {
     open.value = false
   }
