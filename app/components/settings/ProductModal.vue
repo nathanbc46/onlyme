@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { Product } from '~/types/product'
 const fileRef = ref<HTMLInputElement>()
+const costcalc_percent = ref(0.6)
 
 const props = withDefaults(
   defineProps<{
@@ -126,10 +127,10 @@ function onFileClick() {
         </UFormField>
 
         <UFormField name="price" label="Product Price">
-          <UInput v-model.number="state.price" type="number" />
+          <UInput v-model.number="state.price" type="number" @update:model-value="(val) => state.cost = Number(val) * costcalc_percent" />
         </UFormField>
 
-        <UFormField name="cost" label="Product Cost">
+        <UFormField name="cost" :label="'Product Cost (' + costcalc_percent*100 + '%)'">
           <UInput v-model.number="state.cost" type="number" />
         </UFormField>
 

@@ -492,7 +492,7 @@ const open = ref(false)
                   :key="cat.id"
                  
                     :icon="
-                    cat.name === 'ยำแซ่บซี๊ด'
+                    cat.name === 'ยำยำ'
                       ? 'i-heroicons-fire'
                       : cat.name === 'ตำตำ'
                         ? 'mdi:chili-mild'
@@ -505,7 +505,9 @@ const open = ref(false)
                        : cat.name === 'ข้าวไก่กรอบ'
                         ? 'mdi:food-drumstick-outline'           
                         : cat.name === 'สปาเก็ตตี้'
-                        ? 'mdi:pasta'                                                                                
+                        ? 'mdi:pasta'  
+                        : cat.name === 'สุกี้'
+                        ? 'mdi:noodles'                                                                                                      
                       : 'mdi:bowl-mix-outline'
                   "
                   :variant="category === cat.name ? 'solid' : 'outline'"
